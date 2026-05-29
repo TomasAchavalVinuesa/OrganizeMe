@@ -227,11 +227,16 @@ const agendaRowHeights: Record<AgendaZoomMinutes, number> = {
   60: 64,
   30: 72,
 }
+const defaultAgendaStartMinutes = 8 * 60
+const defaultAgendaEndMinutes = 22 * 60
 
 function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
   const [activeTab, setActiveTab] = useState<TiempoTab>('kanban')
   const [agendaZoomMinutes, setAgendaZoomMinutes] = useState<AgendaZoomMinutes>(120)
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
+  const [currentWeekStart, setCurrentWeekStart] = useState(() =>
+    startOfWeek(new Date()),
+  )
   const [actividades, setActividades] = useState<Actividad[]>([])
   const [tareas, setTareas] = useState<TareaKanban[]>([])
   const [subtareas, setSubtareas] = useState<Subtarea[]>([])
@@ -270,8 +275,8 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
   const activePomodoroTaskId = pomodoroSession?.taskId ?? null
 
   const fetchModuleData = useCallback(async () => {
-    const weekStart = startOfWeek(new Date())
-    const weekEnd = endOfWeek(new Date())
+    const weekStart = currentWeekStart
+    const weekEnd = endOfWeek(currentWeekStart)
     const monthStart = startOfMonth(currentMonth)
     const monthEnd = endOfMonth(currentMonth)
     const rangeStart = new Date(Math.min(monthStart.getTime(), weekStart.getTime()))
@@ -323,7 +328,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
         normalizeSubtarea(row, index),
       ),
     )
-  }, [currentMonth, userId])
+  }, [currentMonth, currentWeekStart, userId])
 
   useEffect(() => {
     let isMounted = true
@@ -385,14 +390,8 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
   }, [currentMonth])
 
   const weeklyDays = useMemo(() => {
-    const weekStart = startOfWeek(new Date())
-    return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index))
-  }, [])
-
-  const weeklyScheduleSlots = useMemo(
-    () => createAgendaTimeSlots(agendaZoomMinutes),
-    [agendaZoomMinutes],
-  )
+    return Array.from({ length: 7 }, (_, index) => addDays(currentWeekStart, index))
+  }, [currentWeekStart])
 
   const weeklyAgendaColumns = useMemo<AgendaDayColumn[]>(() => {
     return weeklyDays.map((day) => {
@@ -410,6 +409,21 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
       }
     })
   }, [actividades, weeklyDays])
+
+  const weeklyScheduleRange = useMemo(
+    () => createAgendaVisibleRange(weeklyAgendaColumns, agendaZoomMinutes),
+    [agendaZoomMinutes, weeklyAgendaColumns],
+  )
+
+  const weeklyScheduleSlots = useMemo(
+    () =>
+      createAgendaTimeSlots(
+        agendaZoomMinutes,
+        weeklyScheduleRange.startMinutes,
+        weeklyScheduleRange.endMinutes,
+      ),
+    [agendaZoomMinutes, weeklyScheduleRange],
+  )
 
   const subtasksByTask = useMemo(() => {
     return subtareas.reduce<Record<string, Subtarea[]>>((grouped, subtask) => {
@@ -490,6 +504,14 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
       const currentIndex = agendaZoomLevels.indexOf(currentValue)
       return agendaZoomLevels[Math.max(currentIndex - 1, 0)]
     })
+  }
+
+  const handlePreviousAgendaWeek = () => {
+    setCurrentWeekStart((currentValue) => startOfWeek(addDays(currentValue, -7)))
+  }
+
+  const handleNextAgendaWeek = () => {
+    setCurrentWeekStart((currentValue) => startOfWeek(addDays(currentValue, 7)))
   }
 
   const applyActivityScheduleLocally = useCallback((
@@ -633,6 +655,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     )
     const timelineRect = timelineElement.getBoundingClientRect()
     const pointerMinutes =
+      weeklyScheduleRange.startMinutes +
       (event.clientY - timelineRect.top) / pixelsPerMinute
     const pointerOffsetMinutes =
       mode === 'move'
@@ -687,7 +710,8 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
 
       const timelineRect = timelineElement.getBoundingClientRect()
       const pointerMinutes = clampMinutesToDay(
-        (event.clientY - timelineRect.top) / pixelsPerMinute,
+        weeklyScheduleRange.startMinutes +
+          (event.clientY - timelineRect.top) / pixelsPerMinute,
       )
       const previewStartAt = parseStoredDateTime(interaction.previewStartIso)
       const previewEndAt = parseStoredDateTime(interaction.previewEndIso)
@@ -770,6 +794,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     agendaZoomMinutes,
     applyActivityScheduleLocally,
     finishAgendaInteraction,
+    weeklyScheduleRange.startMinutes,
     weeklyDays,
   ])
 
@@ -1929,6 +1954,29 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center overflow-hidden rounded-2xl border border-white/10 bg-slate-900/45">
+                <button
+                  aria-label="Semana anterior"
+                  className="inline-flex h-11 w-11 items-center justify-center text-slate-100 transition hover:bg-white/10"
+                  onClick={handlePreviousAgendaWeek}
+                  type="button"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <div className="border-x border-white/10 px-4 py-3 text-sm font-semibold text-slate-200">
+                  {formatDateLabel(weeklyDays[0], { day: '2-digit', month: 'short' })}
+                  {' - '}
+                  {formatDateLabel(weeklyDays[6], { day: '2-digit', month: 'short' })}
+                </div>
+                <button
+                  aria-label="Semana siguiente"
+                  className="inline-flex h-11 w-11 items-center justify-center text-slate-100 transition hover:bg-white/10"
+                  onClick={handleNextAgendaWeek}
+                  type="button"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
               <div className="rounded-2xl border border-white/10 bg-slate-900/45 px-4 py-3 text-sm text-slate-300">
                 Escala actual: {agendaZoomLabels[agendaZoomMinutes]}
               </div>
@@ -2023,6 +2071,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                             day,
                             rowHeight,
                             agendaZoomMinutes,
+                            weeklyScheduleRange.startMinutes,
                           )
 
                           if (!layout) {
@@ -2128,11 +2177,9 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
-                Gestor de tareas
+                Administra tus tareas
               </p>
-              <h3 className="mt-2 text-2xl font-semibold text-white">
-                Administra tus tareas vinculandolas a tus actividades y organizandolas por estado de avance
-              </h3>
+              
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -2155,7 +2202,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 type="button"
               >
                 <Plus className="h-4 w-4" />
-                Anadir tarea
+                Añadir tarea
               </button>
             </div>
           </div>
@@ -2195,16 +2242,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                         {columnTasks.length} items
                       </p>
                     </div>
-
-                    {column === 'pendientes' ? (
-                      <button
-                        className="rounded-full border border-sky-300/20 bg-sky-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-sky-100 transition hover:bg-sky-300/18"
-                        onClick={openTaskModalForCreate}
-                        type="button"
-                      >
-                        + Anadir tarea
-                      </button>
-                    ) : null}
                   </div>
 
                   <div className="mt-4 space-y-4">
@@ -2351,20 +2388,12 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                                     </span>
                                   </label>
                                 ))
-                              ) : (
-                                <div className="rounded-2xl border border-dashed border-white/10 px-3 py-3 text-sm text-slate-400">
-                                  Esta tarjeta todavia no tiene subtareas.
-                                </div>
-                              )}
+                              ) : null }
                             </div>
                           </article>
                         )
                       })
-                    ) : (
-                      <div className="rounded-3xl border border-dashed border-white/10 px-4 py-6 text-sm text-slate-400">
-                        Sin tarjetas en esta columna.
-                      </div>
-                    )}
+                    ) : (null)}
                   </div>
                 </div>
               )
@@ -2915,11 +2944,11 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
           onClose={() => {
             setShowTaskModal(false)
           }}
-          title={taskModalState.taskId ? 'Editar tarea' : 'Nueva tarea'}
-          subtitle="Gestiona una tarjeta completa con subtareas y pomodoros"
+          title={""}
+          subtitle={taskModalState.taskId ? 'Editar Tarea' : 'Nueva Tarea'}
         >
           <form className="mt-6 space-y-4" onSubmit={handleSaveTask}>
-            <FieldLabel label="Titulo de la tarea">
+            <FieldLabel label="Título">
               <input
                 required
                 className={inputClassName}
@@ -2930,7 +2959,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
               />
             </FieldLabel>
 
-            <FieldLabel label="Descripcion de la tarea">
+            <FieldLabel label="Descripción">
               <textarea
                 className={textareaClassName}
                 name="descripcion"
@@ -3013,12 +3042,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
 
             <div className="rounded-3xl border border-white/10 bg-slate-900/45 p-4">
               <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-white">Subtareas</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                    Lista interna de la tarjeta
-                  </p>
-                </div>
 
                 <button
                   className="rounded-2xl border border-sky-300/20 bg-sky-300/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-100 transition hover:bg-sky-300/18"
@@ -3048,7 +3071,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                         type="checkbox"
                       />
                     </label>
-                    <FieldLabel label={`Descripcion subtarea ${index + 1}`}>
+                    <FieldLabel label={`subtarea ${index + 1}`}>
                       <input
                         className={inputClassName}
                         onChange={(event) => {
@@ -3721,12 +3744,19 @@ function hasActivityOverlap({
   })
 }
 
-function createAgendaTimeSlots(slotMinutes: AgendaZoomMinutes): AgendaTimeSlot[] {
-  const totalMinutesInDay = 24 * 60
+function createAgendaTimeSlots(
+  slotMinutes: AgendaZoomMinutes,
+  rangeStartMinutes = 0,
+  rangeEndMinutes = 24 * 60,
+): AgendaTimeSlot[] {
   const slots: AgendaTimeSlot[] = []
 
-  for (let startMinutes = 0; startMinutes < totalMinutesInDay; startMinutes += slotMinutes) {
-    const endMinutes = Math.min(startMinutes + slotMinutes, totalMinutesInDay)
+  for (
+    let startMinutes = rangeStartMinutes;
+    startMinutes < rangeEndMinutes;
+    startMinutes += slotMinutes
+  ) {
+    const endMinutes = Math.min(startMinutes + slotMinutes, rangeEndMinutes)
     slots.push({
       id: `${slotMinutes}-${startMinutes}`,
       startMinutes,
@@ -3738,11 +3768,55 @@ function createAgendaTimeSlots(slotMinutes: AgendaZoomMinutes): AgendaTimeSlot[]
   return slots
 }
 
+function createAgendaVisibleRange(
+  columns: AgendaDayColumn[],
+  slotMinutes: AgendaZoomMinutes,
+) {
+  let startMinutes = defaultAgendaStartMinutes
+  let endMinutes = defaultAgendaEndMinutes
+
+  columns.forEach(({ day, timedActivities }) => {
+    timedActivities.forEach((actividad) => {
+      const start = parseStoredActivityStart(actividad)
+      const end = actividad.fecha_fin ? parseStoredActivityEnd(actividad) : new Date(start)
+      const dayStart = startOfDay(day)
+      const dayEnd = endOfDay(day)
+
+      const startsInDay = start > dayStart ? start : dayStart
+      const endsInDay = end < dayEnd ? end : dayEnd
+      const activityStartMinutes = clampMinutesToDay(
+        getMinutesSinceStartOfDay(startsInDay),
+      )
+      const activityEndMinutes = clampMinutesToDay(
+        getMinutesSinceStartOfDay(endsInDay),
+      )
+      const safeEndMinutes = Math.max(
+        activityEndMinutes,
+        Math.min(activityStartMinutes + 5, 24 * 60),
+      )
+
+      if (activityStartMinutes < startMinutes) {
+        startMinutes = Math.floor(activityStartMinutes / slotMinutes) * slotMinutes
+      }
+
+      if (safeEndMinutes > endMinutes) {
+        endMinutes = Math.ceil(safeEndMinutes / slotMinutes) * slotMinutes
+      }
+    })
+  })
+
+  return {
+    startMinutes: clampMinutesToDay(startMinutes),
+    endMinutes: clampMinutesToDay(Math.max(endMinutes, startMinutes + slotMinutes)),
+  }
+}
+
 function getWeeklyAgendaActivityLayout(
   actividad: Actividad,
   day: Date,
   rowHeight: number,
   slotMinutes: AgendaZoomMinutes,
+  rangeStartMinutes = 0,
 ) {
   const start = parseStoredActivityStart(actividad)
   const end = actividad.fecha_fin ? parseStoredActivityEnd(actividad) : new Date(start)
@@ -3758,7 +3832,7 @@ function getWeeklyAgendaActivityLayout(
   const safeEndMinutes = Math.max(endMinutes, Math.min(startMinutes + 5, 24 * 60))
 
   const pixelsPerMinute = getAgendaPixelsPerMinute(rowHeight, slotMinutes)
-  const top = startMinutes * pixelsPerMinute
+  const top = (startMinutes - rangeStartMinutes) * pixelsPerMinute
   const height = Math.max((safeEndMinutes - startMinutes) * pixelsPerMinute, 18)
 
   return {
