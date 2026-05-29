@@ -1,19 +1,34 @@
 export type RawRow = Record<string, unknown>
 
+export type ActividadCategoria =
+  | 'evento_unico'
+  | 'actividad_fisica'
+  | 'cumpleanos'
+  | 'juntada'
+  | 'actividad_rutinaria'
+  | 'tiempo_dedicado'
+
 export type Actividad = {
   color: string
+  categoria: ActividadCategoria
+  datos_extra: Record<string, unknown>
   descripcion: string | null
+  eliminada_calendario_at: string | null
   fecha_fin: string | null
   fecha_inicio: string
   id: string
+  ocurrencia_fecha: string | null
+  oculta_calendarios: boolean
+  serie_id: string | null
   tipo: 'evento' | 'recordatorio' | 'bloque_tiempo'
   titulo: string
   user_id: string
+  visible_calendario_mensual: boolean
 }
 
 export type TareaKanban = {
   actividad_id: string | null
-  columna: 'pendientes' | 'in_progress' | 'done'
+  columna: 'pendientes' | 'in_progress' | 'done' | 'archived'
   id: string
   pomodoros_completados: number
   pomodoros_estimados: number
@@ -118,9 +133,20 @@ export function normalizeActividad(row: unknown, index: number): Actividad {
     titulo: readString(safeRow.titulo) ?? 'Actividad sin titulo',
     descripcion: readString(safeRow.descripcion),
     tipo,
+    categoria: normalizeActividadCategoria(
+      readString(safeRow.categoria),
+      readString(safeRow.descripcion),
+      tipo,
+    ),
     fecha_inicio: readString(safeRow.fecha_inicio) ?? new Date().toISOString(),
     fecha_fin: readString(safeRow.fecha_fin),
     color: readString(safeRow.color) ?? defaultActivityColor(tipo),
+    visible_calendario_mensual: readBoolean(safeRow.visible_calendario_mensual) ?? true,
+    serie_id: readString(safeRow.serie_id),
+    ocurrencia_fecha: readString(safeRow.ocurrencia_fecha),
+    oculta_calendarios: readBoolean(safeRow.oculta_calendarios) ?? false,
+    eliminada_calendario_at: readString(safeRow.eliminada_calendario_at),
+    datos_extra: readRecord(safeRow.datos_extra),
   }
 }
 
@@ -304,8 +330,44 @@ function normalizeActividadTipo(value: string | null): Actividad['tipo'] {
   return 'evento'
 }
 
+function normalizeActividadCategoria(
+  value: string | null,
+  descripcion: string | null,
+  tipo: Actividad['tipo'],
+): ActividadCategoria {
+  if (descripcion?.startsWith('[[subtipo:actividad_fisica]]')) {
+    return 'actividad_fisica'
+  }
+
+  if (descripcion?.startsWith('[[subtipo:cumpleanos]]')) {
+    return 'cumpleanos'
+  }
+
+  if (
+    value === 'evento_unico' ||
+    value === 'actividad_fisica' ||
+    value === 'cumpleanos' ||
+    value === 'juntada' ||
+    value === 'actividad_rutinaria' ||
+    value === 'tiempo_dedicado'
+  ) {
+    return value
+  }
+
+  if (tipo === 'bloque_tiempo') {
+    return 'tiempo_dedicado'
+  }
+
+  return 'evento_unico'
+}
+
 function normalizeTaskColumn(value: string | null): TareaKanban['columna'] {
-  if (value === 'pendientes' || value === 'in_progress' || value === 'done') {
+  if (
+    value === 'pendientes' ||
+    value === 'in_progress' ||
+    value === 'done' ||
+    value === 'archived'
+  ) {
     return value
   }
 
@@ -413,4 +475,12 @@ function readBoolean(value: unknown) {
   }
 
   return null
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+
+  return {}
 }

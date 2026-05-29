@@ -975,9 +975,18 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
           scheduleForm.notas.trim() || routine.descripcion || '',
         ),
         tipo: 'evento',
+        categoria: 'actividad_fisica',
         fecha_inicio: startAt.toISOString(),
         fecha_fin: endAt.toISOString(),
         color: '#22c55e',
+        visible_calendario_mensual: false,
+        datos_extra: {
+          categoria: 'actividad_fisica',
+          rutina_id: routine.id,
+        },
+        serie_id: null,
+        ocurrencia_fecha: scheduleForm.date,
+        oculta_calendarios: false,
       })
 
       if (insertError) {
@@ -1010,9 +1019,19 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
         titulo: `Entrenamiento completado: ${routine.nombre}`,
         descripcion: buildPhysicalActivityDescription(routine.descripcion ?? ''),
         tipo: 'evento',
+        categoria: 'actividad_fisica',
         fecha_inicio: startAt.toISOString(),
         fecha_fin: endAt.toISOString(),
         color: '#22c55e',
+        visible_calendario_mensual: false,
+        datos_extra: {
+          categoria: 'actividad_fisica',
+          rutina_id: routine.id,
+          completada: true,
+        },
+        serie_id: null,
+        ocurrencia_fecha: toDateInputValue(startAt),
+        oculta_calendarios: false,
       })
 
       if (insertError) {

@@ -111,6 +111,7 @@ function Home() {
           .from('actividades')
           .select('*')
           .eq('user_id', user.id)
+          .eq('oculta_calendarios', false)
           .gte('fecha_inicio', todayStart.toISOString())
           .lt('fecha_inicio', tomorrowStart.toISOString())
           .order('fecha_inicio', { ascending: true }),
@@ -209,16 +210,18 @@ function Home() {
         >
           <div>
             <div className="flex items-start justify-between gap-3 rounded-3xl border border-white/10 bg-white/8 p-5">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-sky-200/80">
-                  OrganizeMe
-                </p>
-                <h1 className="mt-4 text-2xl font-semibold text-white">
-                  Dashboard principal
-                </h1>
-                <p className="mt-3 text-sm leading-6 text-slate-300">
-                  Un lugar para organizar tu tiempo, tareas y finanzas personales de forma rapida y sencilla.
-                </p>
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-sky-300/25 bg-sky-300/12 text-lg font-black text-sky-100 shadow-[0_16px_34px_rgba(56,189,248,0.12)]">
+                  OM
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-xl font-semibold text-white">
+                    OrganizeMe
+                  </p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.24em] text-sky-200/70">
+                    Tu centro personal
+                  </p>
+                </div>
               </div>
 
               <button
@@ -255,16 +258,18 @@ function Home() {
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex items-start gap-4">
-                  <button
-                    aria-label={isSidebarOpen ? 'Ocultar sidebar' : 'Mostrar sidebar'}
-                    className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-slate-100 transition hover:bg-white/12"
-                    onClick={() => {
-                      setIsSidebarOpen((currentValue) => !currentValue)
-                    }}
-                    type="button"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </button>
+                  {!isSidebarOpen ? (
+                    <button
+                      aria-label="Mostrar sidebar"
+                      className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-slate-100 transition hover:bg-white/12"
+                      onClick={() => {
+                        setIsSidebarOpen(true)
+                      }}
+                      type="button"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </button>
+                  ) : null}
 
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.28em] text-sky-200/70">

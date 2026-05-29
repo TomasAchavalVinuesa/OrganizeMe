@@ -114,6 +114,7 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
           .select('*')
           .eq('user_id', userId)
           .neq('columna', 'done')
+          .neq('columna', 'archived')
           .order('columna', { ascending: true })
           .order('posicion', { ascending: true }),
         supabase
