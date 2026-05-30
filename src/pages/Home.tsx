@@ -44,13 +44,13 @@ const navigationItems: Array<{
   {
     id: 'dashboard',
     title: 'Dashboard',
-    description: 'Resumen rapido con saldos y tareas del dia.',
+    description: 'Resumen rapido con saldos y actividades del dia.',
     icon: LayoutDashboard,
   },
   {
     id: 'tiempo',
     title: 'Gestion de Tiempo',
-    description: 'Calendario, agenda semanal y Kanban personal.',
+    description: 'Calendario mensual, agenda semanal y organizador de tareas.',
     icon: CalendarRange,
   },
   {
@@ -210,29 +210,21 @@ function Home() {
         >
           <div>
             <div className="flex items-start justify-between gap-3 rounded-3xl border border-white/10 bg-white/8 p-5">
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-sky-300/25 bg-sky-300/12 text-lg font-black text-sky-100 shadow-[0_16px_34px_rgba(56,189,248,0.12)]">
-                  OM
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-xl font-semibold text-white">
-                    OrganizeMe
-                  </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.24em] text-sky-200/70">
-                    Tu centro personal
-                  </p>
+              <div className="flex flex-col min-w-0 items-start gap-2">
+                <div className="flex h-12 w-40 shrink-0 items-center justify-center rounded-2xl border border-sky-300/25 bg-sky-300/12 text-lg font-black text-sky-100 shadow-[0_16px_34px_rgba(56,189,248,0.12)]">
+                  Organize Me
                 </div>
               </div>
 
               <button
                 aria-label="Cerrar sidebar"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/45 text-slate-200 transition hover:bg-white/10"
+                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/45 text-slate-200 transition hover:bg-white/10"
                 onClick={() => {
                   setIsSidebarOpen(false)
                 }}
                 type="button"
               >
-                <X className="h-4 w-4" />
+                <X className="h-6 w-6" />
               </button>
             </div>
 
@@ -273,18 +265,11 @@ function Home() {
 
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.28em] text-sky-200/70">
-                      Bienvenido
+                      Bienvenido 
                     </p>
                     <h2 className="mt-2 text-3xl font-semibold text-white">
                       {getActiveViewTitle(activeView)}
                     </h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
-                      Sesion activa de: {' '}
-                      <span className="font-semibold text-sky-100">
-                        {user?.email ?? 'sin correo disponible'}
-                      </span>
-                      .
-                    </p>
                   </div>
                 </div>
 
@@ -372,7 +357,7 @@ function DashboardOverview({
 
             <div className="inline-flex items-center gap-2 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm font-medium text-emerald-100">
               <BarChart3 className="h-4 w-4" />
-              {summary.cuentasTotal} cuentas activas
+              {summary.cuentasTotal} cuentas asociadas
             </div>
           </div>
         </div>
@@ -405,12 +390,6 @@ function DashboardOverview({
                 day: 'numeric',
               })}
             </h3>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-slate-900/50 px-4 py-3 text-sm text-slate-300">
-            {loading
-              ? 'Sincronizando dashboard...'
-              : `${summary.tareasHoy.length} actividades programadas para hoy`}
           </div>
         </div>
 
@@ -494,9 +473,6 @@ function SidebarNavButton({
         </span>
         <div>
           <p className="text-base font-semibold text-white">{title}</p>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
-            Vista
-          </p>
         </div>
       </div>
       <p className="mt-4 text-sm leading-6 text-slate-300">{description}</p>

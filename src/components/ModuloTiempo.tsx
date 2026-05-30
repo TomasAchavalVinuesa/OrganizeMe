@@ -1,6 +1,7 @@
 import {
   Archive,
   CalendarDays,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -13,6 +14,7 @@ import {
   Play,
   Plus,
   RotateCcw,
+  Search,
   Trash2,
   X,
 } from 'lucide-react'
@@ -84,12 +86,15 @@ type EventFormState = {
   endTime: string
   gifts: GiftIdea[]
   hasEndDateTime: boolean
+  repeatEvent: boolean
   repeatDays: WeekdayIndex[]
+  repeatFrequency: 'monthly' | 'yearly'
   repeatStartDate: string
   startDate: string
   startTime: string
   titulo: string
   visibleMonthly: boolean
+  wantsGift: boolean
 }
 
 type ActivityPayload = {
@@ -174,6 +179,15 @@ type AgendaInteraction = {
   previewStartIso: string
 }
 
+type AgendaScheduleConfirmation = {
+  activityId: string
+  eventTitle: string
+  nextEndIso: string
+  nextStartIso: string
+  originalEndIso: string
+  originalStartIso: string
+}
+
 const kanbanColumns = ['pendientes', 'in_progress', 'done'] satisfies Array<
   TareaKanban['columna']
 >
@@ -187,7 +201,7 @@ const columnLabels: Record<(typeof kanbanColumns)[number], string> = {
 const activityCategoryLabels: Record<ActividadCategoria, string> = {
   evento_unico: 'Evento unico',
   actividad_fisica: 'Actividad fisica',
-  cumpleanos: 'Cumpleanos',
+  cumpleanos: 'Día Especial',
   juntada: 'Juntada',
   actividad_rutinaria: 'Actividad rutinaria',
   tiempo_dedicado: 'Tiempo dedicado',
@@ -201,6 +215,21 @@ const weekdayOptions: Array<{ label: string; value: WeekdayIndex }> = [
   { label: 'Vie', value: 5 },
   { label: 'Sab', value: 6 },
   { label: 'Dom', value: 0 },
+]
+
+const monthOptions = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ]
 
 const selectClassName =
@@ -264,7 +293,12 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
   const [taskModalState, setTaskModalState] = useState<TaskModalState>(
     createDefaultTaskModalState(),
   )
+  const [taskActivitySearch, setTaskActivitySearch] = useState('')
+  const [isTaskActivitySelectOpen, setIsTaskActivitySelectOpen] = useState(false)
   const [previewActivity, setPreviewActivity] = useState<Actividad | null>(null)
+  const [agendaScheduleConfirmation, setAgendaScheduleConfirmation] =
+    useState<AgendaScheduleConfirmation | null>(null)
+  const [savingAgendaSchedule, setSavingAgendaSchedule] = useState(false)
   const [activeAgendaInteraction, setActiveAgendaInteraction] = useState<{
     activityId: string
     mode: AgendaInteractionMode
@@ -389,6 +423,18 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     ]
   }, [currentMonth])
 
+  const calendarYearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear()
+    const selectedYear = currentMonth.getFullYear()
+    const startYear = Math.min(currentYear, selectedYear) - 5
+    const endYear = Math.max(currentYear, selectedYear) + 5
+
+    return Array.from(
+      { length: endYear - startYear + 1 },
+      (_, index) => startYear + index,
+    )
+  }, [currentMonth])
+
   const weeklyDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, index) => addDays(currentWeekStart, index))
   }, [currentWeekStart])
@@ -487,6 +533,33 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
       return grouped
     }, {})
   }, [actividades])
+
+  const filteredTaskActivities = useMemo(() => {
+    const searchValue = normalizeSearchValue(taskActivitySearch)
+
+    if (!searchValue) {
+      return actividades
+    }
+
+    return actividades.filter((actividad) => {
+      if (actividad.id === taskModalState.actividadId) {
+        return true
+      }
+
+      return normalizeSearchValue(actividad.titulo).includes(searchValue)
+    })
+  }, [actividades, taskActivitySearch, taskModalState.actividadId])
+
+  const selectedTaskActivity = useMemo(() => {
+    if (!taskModalState.actividadId) {
+      return null
+    }
+
+    return (
+      actividades.find((actividad) => actividad.id === taskModalState.actividadId) ??
+      null
+    )
+  }, [actividades, taskModalState.actividadId])
 
   const refreshAll = useCallback(async () => {
     await fetchModuleData()
@@ -603,28 +676,82 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     }
 
     setMutationError(null)
+    const activity = actividades.find(
+      (actividad) => actividad.id === interaction.activityId,
+    )
+
+    setAgendaScheduleConfirmation({
+      activityId: interaction.activityId,
+      eventTitle: activity?.titulo ?? 'Actividad',
+      originalStartIso: interaction.originalStartIso,
+      originalEndIso: interaction.originalEndIso,
+      nextStartIso: interaction.previewStartIso,
+      nextEndIso: interaction.previewEndIso,
+    })
+  }, [
+    actividades,
+    applyActivityScheduleLocally,
+  ])
+
+  const handleCancelAgendaScheduleChange = useCallback(() => {
+    if (!agendaScheduleConfirmation || savingAgendaSchedule) {
+      return
+    }
+
+    applyActivityScheduleLocally(
+      agendaScheduleConfirmation.activityId,
+      parseStoredDateTime(agendaScheduleConfirmation.originalStartIso),
+      parseStoredDateTime(agendaScheduleConfirmation.originalEndIso),
+    )
+    setAgendaScheduleConfirmation(null)
+  }, [
+    agendaScheduleConfirmation,
+    applyActivityScheduleLocally,
+    savingAgendaSchedule,
+  ])
+
+  const handleConfirmAgendaScheduleChange = useCallback(async () => {
+    if (!agendaScheduleConfirmation) {
+      return
+    }
+
+    const originalStartAt = parseStoredDateTime(
+      agendaScheduleConfirmation.originalStartIso,
+    )
+    const originalEndAt = parseStoredDateTime(
+      agendaScheduleConfirmation.originalEndIso,
+    )
+    const nextStartAt = parseStoredDateTime(agendaScheduleConfirmation.nextStartIso)
+    const nextEndAt = parseStoredDateTime(agendaScheduleConfirmation.nextEndIso)
+
+    setSavingAgendaSchedule(true)
+    setMutationError(null)
 
     try {
       await persistActivitySchedule(
-        interaction.activityId,
-        previewStartAt,
-        previewEndAt,
+        agendaScheduleConfirmation.activityId,
+        nextStartAt,
+        nextEndAt,
       )
+      setAgendaScheduleConfirmation(null)
       onDataChanged()
     } catch (issue) {
       applyActivityScheduleLocally(
-        interaction.activityId,
+        agendaScheduleConfirmation.activityId,
         originalStartAt,
         originalEndAt,
       )
+      setAgendaScheduleConfirmation(null)
       setMutationError(
         issue instanceof Error
           ? issue.message
           : 'No pudimos actualizar el horario de la actividad.',
       )
+    } finally {
+      setSavingAgendaSchedule(false)
     }
   }, [
-    actividades,
+    agendaScheduleConfirmation,
     applyActivityScheduleLocally,
     onDataChanged,
     persistActivitySchedule,
@@ -636,7 +763,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     dayIndex: number,
     mode: AgendaInteractionMode,
   ) => {
-    if (event.button !== 0) {
+    if (event.button !== 0 || agendaScheduleConfirmation) {
       return
     }
 
@@ -815,6 +942,8 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
 
   const openTaskModalForCreate = () => {
     setMutationError(null)
+    setTaskActivitySearch('')
+    setIsTaskActivitySelectOpen(false)
     setTaskModalState(createDefaultTaskModalState())
     setShowTaskModal(true)
   }
@@ -827,6 +956,8 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     const pomodoroConfig = getTaskPomodoroConfig(task, relatedSubtasks)
 
     setMutationError(null)
+    setTaskActivitySearch('')
+    setIsTaskActivitySelectOpen(false)
     setTaskModalState({
       taskId: task.id,
       titulo: task.titulo,
@@ -868,6 +999,8 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
 
         if (value === 'cumpleanos') {
           nextForm.birthdayDate = currentForm.startDate
+          nextForm.repeatEvent = false
+          nextForm.repeatFrequency = 'yearly'
         }
 
         if (value === 'juntada') {
@@ -878,6 +1011,9 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
       if (nextForm.category === 'cumpleanos') {
         nextForm.startTime = '00:00'
         nextForm.endTime = '23:59'
+        nextForm.startDate = nextForm.birthdayDate
+        nextForm.endDate = nextForm.birthdayDate
+        nextForm.repeatStartDate = nextForm.birthdayDate
       }
 
       return nextForm
@@ -949,6 +1085,15 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     })
   }
 
+  const handleSelectTaskActivity = (activityId: string) => {
+    setTaskModalState((currentForm) => ({
+      ...currentForm,
+      actividadId: activityId,
+    }))
+    setTaskActivitySearch('')
+    setIsTaskActivitySelectOpen(false)
+  }
+
   const handleSubtaskChange = (
     index: number,
     field: keyof EditableSubtask,
@@ -995,8 +1140,11 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     })
   }
 
-  const handleCreateEvent = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const handleCreateEvent = async (
+    event?: FormEvent<HTMLFormElement>,
+    saveScope: 'single' | 'series' = 'single',
+  ) => {
+    event?.preventDefault()
     setMutationError(null)
     setSavingEvent(true)
 
@@ -1004,13 +1152,17 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
       const editingActivity = editingActivityId
         ? actividades.find((actividad) => actividad.id === editingActivityId) ?? null
         : null
+      const shouldReplaceSeries =
+        saveScope === 'series' && Boolean(editingActivity?.serie_id)
       const payloads =
-        editingActivityId && editingActivity
+        editingActivityId && editingActivity && !shouldReplaceSeries
           ? [buildSingleActivityPayloadFromForm(eventForm, userId, editingActivity)]
-          : buildActivityPayloadsFromForm(eventForm, userId)
+          : buildActivityPayloadsFromForm(eventForm, userId, {
+              seriesId: editingActivity?.serie_id ?? undefined,
+            })
 
       const hasOverlap = payloads.some((payload) => {
-        if (!payload.fecha_fin) {
+        if (!payload.fecha_fin || payload.categoria === 'cumpleanos') {
           return false
         }
 
@@ -1019,7 +1171,10 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
 
         return hasActivityOverlap({
           activities: actividades,
-          excludeActivityId: editingActivityId ?? undefined,
+          excludeActivityId: shouldReplaceSeries ? undefined : editingActivityId ?? undefined,
+          excludeSeriesId: shouldReplaceSeries
+            ? editingActivity?.serie_id ?? undefined
+            : undefined,
           nextStartAt: startAt,
           nextEndAt: endAt,
         })
@@ -1031,7 +1186,28 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
         )
       }
 
-      if (editingActivityId) {
+      if (shouldReplaceSeries && editingActivity?.serie_id) {
+        const { error: hideSeriesError } = await supabase
+          .from('actividades')
+          .update({
+            oculta_calendarios: true,
+            eliminada_calendario_at: new Date().toISOString(),
+          })
+          .eq('serie_id', editingActivity.serie_id)
+          .eq('user_id', userId)
+
+        if (hideSeriesError) {
+          throw new Error(hideSeriesError.message)
+        }
+
+        const { error: insertError } = await supabase
+          .from('actividades')
+          .insert(payloads)
+
+        if (insertError) {
+          throw new Error(insertError.message)
+        }
+      } else if (editingActivityId) {
         const { error: updateError } = await supabase
           .from('actividades')
           .update(payloads[0])
@@ -1753,6 +1929,11 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
     }
   }
 
+  const editingActivity = editingActivityId
+    ? actividades.find((actividad) => actividad.id === editingActivityId) ?? null
+    : null
+  const isEditingRecurringActivity = Boolean(editingActivity?.serie_id)
+
   return (
     <div className="space-y-6">
       {error ? (
@@ -1823,6 +2004,50 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:w-auto">
+                <label className="min-w-36">
+                  <span className="sr-only">Mes</span>
+                  <select
+                    className={selectClassName}
+                    onChange={(event) => {
+                      const nextMonth = new Date(currentMonth)
+                      nextMonth.setMonth(Number.parseInt(event.target.value, 10))
+                      setCurrentMonth(startOfMonth(nextMonth))
+                    }}
+                    value={currentMonth.getMonth()}
+                  >
+                    {monthOptions.map((monthLabel, monthIndex) => (
+                      <option
+                        key={monthLabel}
+                        className={optionClassName}
+                        value={monthIndex}
+                      >
+                        {monthLabel}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="min-w-28">
+                  <span className="sr-only">Año</span>
+                  <select
+                    className={selectClassName}
+                    onChange={(event) => {
+                      const nextMonth = new Date(currentMonth)
+                      nextMonth.setFullYear(Number.parseInt(event.target.value, 10))
+                      setCurrentMonth(startOfMonth(nextMonth))
+                    }}
+                    value={currentMonth.getFullYear()}
+                  >
+                    {calendarYearOptions.map((year) => (
+                      <option key={year} className={optionClassName} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
               <button
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
                 onClick={() => {
@@ -1947,9 +2172,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
                   Agenda semanal
                 </p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
-                  Vista completa con horarios vacios y actividades posicionadas
-                </h3>
               </div>
             </div>
 
@@ -2007,12 +2229,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 <Plus className="h-4 w-4" />
               </button>
             </div>
-          </div>
-
-          <div className="mt-4 rounded-3xl border border-white/10 bg-slate-950/35 px-4 py-3 text-sm text-slate-300">
-            Usa <span className="font-semibold text-white">+</span> para ver mas detalle
-            y <span className="font-semibold text-white">-</span> para agrupar la agenda
-            por bloques mas amplios.
           </div>
 
           <div className="mt-6 overflow-x-auto">
@@ -2413,9 +2629,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
             <section className="rounded-3xl border border-white/10 bg-slate-900/45 p-4">
               <p className="text-sm font-semibold text-white">Finalizadas</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                Listas para historial
-              </p>
 
               <div className="mt-4 space-y-3">
                 {completedTasks.length > 0 ? (
@@ -2448,9 +2661,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
 
             <section className="rounded-3xl border border-white/10 bg-slate-900/45 p-4">
               <p className="text-sm font-semibold text-white">Archivadas</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                Fuera del kanban
-              </p>
 
               <div className="mt-4 space-y-3">
                 {archivedTasks.length > 0 ? (
@@ -2488,7 +2698,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                   ))
                 ) : (
                   <div className="rounded-2xl border border-dashed border-white/10 px-4 py-5 text-sm text-slate-400">
-                    Todavia no enviaste tareas al historial.
+                    No hay tareas en el historial.
                   </div>
                 )}
               </div>
@@ -2713,7 +2923,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
 
             {eventForm.category === 'cumpleanos' ? (
               <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-900/45 p-4">
-                <FieldLabel label="Fecha del cumpleanos">
+                <FieldLabel label="Fecha del día especial">
                   <input
                     required
                     className={inputClassName}
@@ -2723,6 +2933,35 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                     value={eventForm.birthdayDate}
                   />
                 </FieldLabel>
+
+                <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white">
+                  <input
+                    checked={eventForm.repeatEvent}
+                    className="h-4 w-4 rounded border-white/20 bg-slate-950/60 accent-sky-300"
+                    name="repeatEvent"
+                    onChange={handleEventInputChange}
+                    type="checkbox"
+                  />
+                  <span className="font-medium">¿Repetir evento?</span>
+                </label>
+
+                {eventForm.repeatEvent ? (
+                  <FieldLabel label="Frecuencia">
+                    <select
+                      className={selectClassName}
+                      name="repeatFrequency"
+                      onChange={handleEventInputChange}
+                      value={eventForm.repeatFrequency}
+                    >
+                      <option className={optionClassName} value="monthly">
+                        Mensualmente
+                      </option>
+                      <option className={optionClassName} value="yearly">
+                        Anualmente
+                      </option>
+                    </select>
+                  </FieldLabel>
+                ) : null}
 
                 <FieldLabel label="Mensaje preparado">
                   <textarea
@@ -2744,7 +2983,19 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                   />
                 </FieldLabel>
 
-                <div>
+                <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white">
+                  <input
+                    checked={eventForm.wantsGift}
+                    className="h-4 w-4 rounded border-white/20 bg-slate-950/60 accent-sky-300"
+                    name="wantsGift"
+                    onChange={handleEventInputChange}
+                    type="checkbox"
+                  />
+                  <span className="font-medium">¿Quieres regalar algo ese día?</span>
+                </label>
+
+                {eventForm.wantsGift ? (
+                  <div>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                       Posibles regalos
@@ -2788,22 +3039,109 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                     ))}
                   </div>
                 </div>
+                ) : null}
               </div>
             ) : null}
 
-            <button
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={savingEvent}
-              type="submit"
-            >
-              <CalendarDays className="h-4 w-4" />
-              {savingEvent
-                ? 'Guardando...'
-                : editingActivityId
-                  ? 'Guardar cambios'
-                  : 'Guardar actividad'}
-            </button>
+            {isEditingRecurringActivity ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-300/20 bg-sky-300/10 px-4 py-3 text-sm font-semibold text-sky-100 transition hover:bg-sky-300/18 disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={savingEvent}
+                  onClick={() => {
+                    void handleCreateEvent(undefined, 'single')
+                  }}
+                  type="button"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  {savingEvent ? 'Guardando...' : 'Guardar solo esta instancia'}
+                </button>
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={savingEvent}
+                  onClick={() => {
+                    void handleCreateEvent(undefined, 'series')
+                  }}
+                  type="button"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  {savingEvent ? 'Guardando...' : 'Guardar todas las instancias'}
+                </button>
+              </div>
+            ) : (
+              <button
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={savingEvent}
+                type="submit"
+              >
+                <CalendarDays className="h-4 w-4" />
+                {savingEvent
+                  ? 'Guardando...'
+                  : editingActivityId
+                    ? 'Guardar cambios'
+                    : 'Guardar actividad'}
+              </button>
+            )}
           </form>
+        </ModalFrame>
+      ) : null}
+
+      {agendaScheduleConfirmation ? (
+        <ModalFrame
+          onClose={handleCancelAgendaScheduleChange}
+          title="Confirmacion"
+          subtitle="Esta seguro de realizar esta modificacion?"
+        >
+          <div className="mt-6 space-y-4">
+            <div className="rounded-3xl border border-white/10 bg-slate-900/45 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/75">
+                Evento
+              </p>
+              <p className="mt-3 break-words text-xl font-semibold text-white">
+                {agendaScheduleConfirmation.eventTitle}
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <ReadOnlyField
+                label="Inicio"
+                value={`${formatAgendaConfirmationDateTime(
+                  parseStoredDateTime(agendaScheduleConfirmation.originalStartIso),
+                )} -> ${formatAgendaConfirmationDateTime(
+                  parseStoredDateTime(agendaScheduleConfirmation.nextStartIso),
+                )}`}
+              />
+              <ReadOnlyField
+                label="Finalizacion"
+                value={`${formatAgendaConfirmationDateTime(
+                  parseStoredDateTime(agendaScheduleConfirmation.originalEndIso),
+                )} -> ${formatAgendaConfirmationDateTime(
+                  parseStoredDateTime(agendaScheduleConfirmation.nextEndIso),
+                )}`}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                className="inline-flex flex-1 items-center justify-center rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={savingAgendaSchedule}
+                onClick={handleCancelAgendaScheduleChange}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button
+                className="inline-flex flex-1 items-center justify-center rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={savingAgendaSchedule}
+                onClick={() => {
+                  void handleConfirmAgendaScheduleChange()
+                }}
+                type="button"
+              >
+                {savingAgendaSchedule ? 'Guardando...' : 'Confirmar modificacion'}
+              </button>
+            </div>
+          </div>
         </ModalFrame>
       ) : null}
 
@@ -2813,7 +3151,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
             setPreviewActivity(null)
           }}
           title="Actividad"
-          subtitle="Detalle completo de solo lectura"
+          subtitle="Detalle Completo"
         >
           <div className="mt-6 space-y-4">
             <div className="rounded-3xl border border-white/10 bg-slate-900/45 p-5">
@@ -2840,32 +3178,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 value={activityCategoryLabels[getActivityCategory(previewActivity)]}
               />
               <ReadOnlyField
-                label="Calendario mensual"
-                value={
-                  previewActivity.visible_calendario_mensual
-                    ? 'Visible'
-                    : 'Oculto'
-                }
-              />
-              <ReadOnlyField
-                label="Fecha de inicio"
-                value={formatDateLabel(parseStoredActivityStart(previewActivity), {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric',
-                  weekday: 'long',
-                })}
-              />
-              <ReadOnlyField
-                label="Fecha de fin"
-                value={formatDateLabel(parseStoredActivityEnd(previewActivity), {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric',
-                  weekday: 'long',
-                })}
-              />
-              <ReadOnlyField
                 label="Horario"
                 value={
                   isAllDayActivity(previewActivity)
@@ -2874,8 +3186,22 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 }
               />
               <ReadOnlyField
-                label="Color"
-                value={resolveActivityColor(previewActivity)}
+                label="Comienza"
+                value={formatDateLabel(parseStoredActivityStart(previewActivity), {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                  weekday: 'long',
+                })}
+              />
+              <ReadOnlyField
+                label="Finaliza"
+                value={formatDateLabel(parseStoredActivityEnd(previewActivity), {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                  weekday: 'long',
+                })}
               />
             </div>
 
@@ -2896,16 +3222,6 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
               type="button"
             >
               Editar actividad
-            </button>
-
-            <button
-              className="inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/12"
-              onClick={() => {
-                setPreviewActivity(null)
-              }}
-              type="button"
-            >
-              Cerrar
             </button>
 
             <button
@@ -2970,31 +3286,102 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
             </FieldLabel>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FieldLabel label="Actividad vinculada">
-                <select
-                  className={selectClassName}
-                  name="actividadId"
-                  onChange={handleTaskFormChange}
-                  value={taskModalState.actividadId}
-                >
-                  <option className={optionClassName} value="">
-                    Vincular a una actividad (opcional)
-                  </option>
-                  {actividades.map((actividad) => (
-                    <option
-                      key={actividad.id}
-                      className={optionClassName}
-                      value={actividad.id}
+              <div className="block space-y-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  Actividad vinculada
+                </span>
+                <div className="relative">
+                  <button
+                    aria-expanded={isTaskActivitySelectOpen}
+                    className={`${selectClassName} flex items-center justify-between gap-3 text-left`}
+                    onClick={() => {
+                      setIsTaskActivitySelectOpen((currentValue) => !currentValue)
+                    }}
+                    type="button"
+                  >
+                    <span
+                      className={
+                        selectedTaskActivity ? 'truncate text-white' : 'truncate text-slate-400'
+                      }
                     >
-                      {actividad.titulo} -{' '}
-                    {formatDateLabel(parseStoredActivityStart(actividad), {
-                        day: '2-digit',
-                        month: 'short',
-                      })}
-                    </option>
-                  ))}
-                </select>
-              </FieldLabel>
+                      {selectedTaskActivity
+                        ? formatTaskActivityOptionLabel(selectedTaskActivity)
+                        : 'Vincular a una actividad (opcional)'}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-slate-400 transition ${
+                        isTaskActivitySelectOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+
+                  {isTaskActivitySelectOpen ? (
+                    <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-[0_20px_60px_rgba(2,6,23,0.55)]">
+                      <div className="border-b border-white/10 p-2">
+                        <div className="relative">
+                          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                          <input
+                            autoFocus
+                            className="w-full rounded-xl border border-white/10 bg-white/8 px-9 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-sky-300/65 focus:ring-4 focus:ring-sky-300/15"
+                            onChange={(event) => {
+                              setTaskActivitySearch(event.target.value)
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Escape') {
+                                setIsTaskActivitySelectOpen(false)
+                              }
+                            }}
+                            placeholder="Buscar por nombre"
+                            type="search"
+                            value={taskActivitySearch}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="max-h-60 overflow-y-auto p-2">
+                        <button
+                          className={`flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-white/10 ${
+                            taskModalState.actividadId
+                              ? 'text-slate-300'
+                              : 'bg-sky-300/12 text-sky-100'
+                          }`}
+                          onClick={() => {
+                            handleSelectTaskActivity('')
+                          }}
+                          type="button"
+                        >
+                          Vincular a una actividad (opcional)
+                        </button>
+
+                        {filteredTaskActivities.map((actividad) => (
+                          <button
+                            key={actividad.id}
+                            className={`mt-1 flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-white/10 ${
+                              taskModalState.actividadId === actividad.id
+                                ? 'bg-sky-300/12 text-sky-100'
+                                : 'text-slate-200'
+                            }`}
+                            onClick={() => {
+                              handleSelectTaskActivity(actividad.id)
+                            }}
+                            type="button"
+                          >
+                            <span className="min-w-0 truncate">
+                              {formatTaskActivityOptionLabel(actividad)}
+                            </span>
+                          </button>
+                        ))}
+
+                        {filteredTaskActivities.length === 0 ? (
+                          <div className="px-3 py-3 text-sm text-slate-400">
+                            No hay actividades con ese nombre.
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
             </div>
 
             <label className="flex items-center gap-3 rounded-3xl border border-white/10 bg-slate-900/45 px-4 py-4 text-sm text-white">
@@ -3237,6 +3624,8 @@ function createDefaultEventForm(
     endDate: startDate,
     startTime: forcedCategory === 'cumpleanos' ? '00:00' : '10:00',
     endTime: forcedCategory === 'cumpleanos' ? '23:59' : '11:00',
+    repeatEvent: false,
+    repeatFrequency: 'yearly',
     repeatStartDate: startDate,
     repeatDays: [defaultRepeatDay],
     birthdayDate: startDate,
@@ -3246,6 +3635,7 @@ function createDefaultEventForm(
     hasEndDateTime: forcedCategory !== 'juntada',
     visibleMonthly: false,
     color: getDefaultActivityCategoryColor(forcedCategory),
+    wantsGift: false,
   }
 }
 
@@ -3263,6 +3653,13 @@ function createEventFormFromActivity(actividad: Actividad): EventFormState {
     endDate: toDateInputValue(endAt),
     startTime: category === 'cumpleanos' ? '00:00' : toTimeInputValue(startAt),
     endTime: category === 'cumpleanos' ? '23:59' : toTimeInputValue(endAt),
+    repeatEvent:
+      readExtraBoolean(extra.repetir_evento) ??
+      Boolean(actividad.serie_id && category === 'cumpleanos'),
+    repeatFrequency:
+      readSpecialRepeatFrequency(extra.frecuencia_repeticion) ??
+      readSpecialRepeatFrequency(extra.repeatFrequency) ??
+      'yearly',
     repeatStartDate:
       readExtraString(extra.repetir_desde) ??
       readExtraString(extra.repeatStartDate) ??
@@ -3286,6 +3683,9 @@ function createEventFormFromActivity(actividad: Actividad): EventFormState {
     hasEndDateTime: Boolean(actividad.fecha_fin),
     visibleMonthly: actividad.visible_calendario_mensual,
     color: resolveActivityColor(actividad),
+    wantsGift:
+      readExtraBoolean(extra.quiere_regalar) ??
+      createGiftIdeasFromExtra(extra.regalos).some((gift) => gift.descripcion.trim()),
   }
 }
 
@@ -3315,27 +3715,42 @@ function toTimeInputValue(date: Date) {
   return `${hours}:${minutes}`
 }
 
+function formatAgendaConfirmationDateTime(date: Date) {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+
+  return `${day}/${month}/${year} a las ${toTimeInputValue(date)} hs`
+}
+
 function buildActivityPayloadsFromForm(
   form: EventFormState,
   userId: string,
+  options: { seriesId?: string } = {},
 ): ActivityPayload[] {
   const basePayload = buildBaseActivityPayload(form, userId)
   const category = form.category
 
   if (category === 'cumpleanos') {
     const birthdayDate = form.birthdayDate || form.startDate
-    const startAt = createLocalDateTime(birthdayDate, '00:00')
-    const endAt = createLocalDateTime(birthdayDate, '23:59')
+    const seriesId = form.repeatEvent ? options.seriesId ?? createUuid() : null
+    const specialDays = form.repeatEvent
+      ? createSpecialDayRepeatDates(birthdayDate, form.repeatFrequency)
+      : [parseDateInputValue(birthdayDate)]
 
-    return [
-      {
+    return specialDays.map((specialDay) => {
+      const dayValue = toDateInputValue(specialDay)
+      const startAt = createLocalDateTime(dayValue, '00:00')
+      const endAt = createLocalDateTime(dayValue, '23:59')
+
+      return {
         ...basePayload,
         fecha_inicio: startAt.toISOString(),
         fecha_fin: endAt.toISOString(),
-        serie_id: null,
-        ocurrencia_fecha: birthdayDate,
-      },
-    ]
+        serie_id: seriesId,
+        ocurrencia_fecha: dayValue,
+      }
+    })
   }
 
   if (isRecurringActivityCategory(category)) {
@@ -3345,7 +3760,7 @@ function buildActivityPayloadsFromForm(
 
     const repeatStart = parseDateInputValue(form.repeatStartDate || form.startDate)
     const repeatEnd = new Date(repeatStart.getFullYear(), 11, 31)
-    const seriesId = createUuid()
+    const seriesId = options.seriesId ?? createUuid()
     const rows: ActivityPayload[] = []
 
     for (
@@ -3400,7 +3815,7 @@ function buildSingleActivityPayloadFromForm(
       ...basePayload,
       fecha_inicio: startAt.toISOString(),
       fecha_fin: endAt.toISOString(),
-      serie_id: null,
+      serie_id: currentActivity.serie_id,
       ocurrencia_fecha: birthdayDate,
     }
   }
@@ -3480,18 +3895,23 @@ function buildSingleDateTimePayload(
 }
 
 function buildActivityExtra(form: EventFormState): Record<string, unknown> {
-  const regalos = form.gifts
-    .map((gift) => gift.descripcion.trim())
-    .filter((gift) => gift.length > 0)
+  const regalos = form.wantsGift
+    ? form.gifts
+        .map((gift) => gift.descripcion.trim())
+        .filter((gift) => gift.length > 0)
+    : []
 
   return {
     categoria: form.category,
     dias_semana: form.repeatDays,
     repetir_desde: form.repeatStartDate,
     repetir_hasta: `${parseDateInputValue(form.repeatStartDate).getFullYear()}-12-31`,
+    repetir_evento: form.repeatEvent,
+    frecuencia_repeticion: form.repeatFrequency,
     fecha_cumpleanos: form.birthdayDate,
     mensaje_cumpleanos: form.birthdayMessage.trim(),
     contacto_cumpleanos: form.birthdayContact.trim(),
+    quiere_regalar: form.wantsGift,
     regalos,
     juntada_tiene_fin: form.hasEndDateTime,
   }
@@ -3518,6 +3938,62 @@ function parseDateInputValue(value: string) {
   }
 
   return new Date(year, month - 1, day)
+}
+
+function createSpecialDayRepeatDates(
+  startDateValue: string,
+  frequency: EventFormState['repeatFrequency'],
+) {
+  const startDate = parseDateInputValue(startDateValue)
+  const repeatEnd = new Date(startDate.getFullYear() + 5, 11, 31)
+
+  if (frequency === 'yearly') {
+    const dates: Date[] = []
+
+    for (
+      let year = startDate.getFullYear();
+      year <= repeatEnd.getFullYear();
+      year += 1
+    ) {
+      const nextDate = createClampedMonthDate(
+        year,
+        startDate.getMonth(),
+        startDate.getDate(),
+      )
+
+      if (nextDate >= startOfDay(startDate)) {
+        dates.push(nextDate)
+      }
+    }
+
+    return dates
+  }
+
+  const dates: Date[] = []
+
+  for (
+    let year = startDate.getFullYear(), month = startDate.getMonth();
+    year < repeatEnd.getFullYear() ||
+    (year === repeatEnd.getFullYear() && month <= repeatEnd.getMonth());
+    month += 1
+  ) {
+    if (month > 11) {
+      year += 1
+      month = 0
+    }
+
+    const nextDate = createClampedMonthDate(year, month, startDate.getDate())
+    if (nextDate >= startOfDay(startDate)) {
+      dates.push(nextDate)
+    }
+  }
+
+  return dates
+}
+
+function createClampedMonthDate(year: number, monthIndex: number, day: number) {
+  const lastDayOfMonth = new Date(year, monthIndex + 1, 0).getDate()
+  return new Date(year, monthIndex, Math.min(day, lastDayOfMonth))
 }
 
 function createEmptyGiftIdea(): GiftIdea {
@@ -3547,6 +4023,14 @@ function readExtraString(value: unknown) {
   return typeof value === 'string' && value.length > 0 ? value : null
 }
 
+function readExtraBoolean(value: unknown) {
+  return typeof value === 'boolean' ? value : null
+}
+
+function readSpecialRepeatFrequency(value: unknown) {
+  return value === 'monthly' || value === 'yearly' ? value : null
+}
+
 function readExtraWeekdays(value: unknown): WeekdayIndex[] {
   if (!Array.isArray(value)) {
     return []
@@ -3570,6 +4054,14 @@ function sortWeekdays(days: WeekdayIndex[]) {
   return [...new Set(days)].sort(
     (first, second) => (order.get(first) ?? 0) - (order.get(second) ?? 0),
   )
+}
+
+function normalizeSearchValue(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
 }
 
 function createLocalId(prefix: string) {
@@ -3707,14 +4199,23 @@ function getActivityTimeRange(actividad: Actividad) {
   return `${formatTimeLabel(start)} - ${formatTimeLabel(end)}`
 }
 
+function formatTaskActivityOptionLabel(actividad: Actividad) {
+  return `${actividad.titulo} - ${formatDateLabel(parseStoredActivityStart(actividad), {
+    day: '2-digit',
+    month: 'short',
+  })}`
+}
+
 function hasActivityOverlap({
   activities,
   excludeActivityId,
+  excludeSeriesId,
   nextStartAt,
   nextEndAt,
 }: {
   activities: Actividad[]
   excludeActivityId?: string
+  excludeSeriesId?: string
   nextEndAt: Date
   nextStartAt: Date
 }) {
@@ -3725,6 +4226,10 @@ function hasActivityOverlap({
 
   return activities.some((actividad) => {
     if (actividad.id === excludeActivityId) {
+      return false
+    }
+
+    if (excludeSeriesId && actividad.serie_id === excludeSeriesId) {
       return false
     }
 

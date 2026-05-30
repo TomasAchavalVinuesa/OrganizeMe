@@ -566,9 +566,6 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
                         <p className="text-base font-semibold text-white">
                           {cuenta.nombre}
                         </p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.24em] text-slate-400">
-                          {cuenta.tipo}
-                        </p>
                       </div>
 
                       <Landmark className="h-5 w-5 text-sky-200" />
