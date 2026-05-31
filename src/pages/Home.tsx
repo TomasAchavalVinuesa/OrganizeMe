@@ -1,16 +1,19 @@
 import {
+  Apple,
   BarChart3,
   CalendarRange,
   Dumbbell,
   LayoutDashboard,
-  LogOut,
   Menu,
+  Settings,
   X,
   Wallet,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import ModuloAjustesCuenta from '../components/ModuloAjustesCuenta'
 import ModuloEntrenamiento from '../components/ModuloEntrenamiento'
 import ModuloFinanzas from '../components/ModuloFinanzas'
+import ModuloNutricion from '../components/ModuloNutricion'
 import ModuloTiempo from '../components/ModuloTiempo'
 import { useAuth } from '../context/useAuth'
 import {
@@ -27,7 +30,13 @@ import {
 } from '../lib/dateUtils'
 import { supabase } from '../lib/supabaseClient'
 
-type DashboardView = 'dashboard' | 'tiempo' | 'finanzas' | 'entrenamiento'
+type DashboardView =
+  | 'dashboard'
+  | 'tiempo'
+  | 'finanzas'
+  | 'entrenamiento'
+  | 'nutricion'
+  | 'ajustes'
 
 type DashboardSummary = {
   cuentasTotal: number
@@ -38,15 +47,9 @@ type DashboardSummary = {
 const navigationItems: Array<{
   description: string
   icon: typeof LayoutDashboard
-  id: DashboardView
+  id: Exclude<DashboardView, 'dashboard' | 'ajustes'>
   title: string
 }> = [
-  {
-    id: 'dashboard',
-    title: 'Dashboard',
-    description: 'Resumen rapido con saldos y actividades del dia.',
-    icon: LayoutDashboard,
-  },
   {
     id: 'tiempo',
     title: 'Gestion de Tiempo',
@@ -65,7 +68,23 @@ const navigationItems: Array<{
     description: 'Ejercicios, rutinas reutilizables y objetivos fisicos.',
     icon: Dumbbell,
   },
+  {
+    id: 'nutricion',
+    title: 'Nutricion',
+    description: 'Perfil, comidas, hidratacion y progreso corporal.',
+    icon: Apple,
+  },
 ]
+
+const accountNavigationItem: {
+  icon: typeof Settings
+  id: Extract<DashboardView, 'ajustes'>
+  title: string
+} = {
+  id: 'ajustes',
+  title: 'Ajustes de cuenta',
+  icon: Settings,
+}
 
 const initialSummary: DashboardSummary = {
   cuentasTotal: 0,
@@ -192,7 +211,7 @@ function Home() {
     : 'pointer-events-none -translate-x-full opacity-0 lg:w-0 lg:translate-x-0 lg:border-r-0'
 
   return (
-    <main className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),_transparent_25%),linear-gradient(160deg,_#07111f_0%,_#0f172a_42%,_#111827_100%)]">
+    <main className="min-h-screen w-full overflow-x-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),_transparent_25%),linear-gradient(160deg,_#07111f_0%,_#0f172a_42%,_#111827_100%)]">
       <div className="relative flex min-h-screen w-full overflow-hidden bg-slate-950/55 backdrop-blur-xl">
         {isSidebarOpen ? (
           <button
@@ -206,47 +225,70 @@ function Home() {
         ) : null}
 
         <aside
-          className={`${sidebarVisibilityClass} ${sidebarStateClass} overflow-hidden bg-[linear-gradient(180deg,rgba(8,47,73,0.55),rgba(15,23,42,0.92))] p-6`}
+          className={`${sidebarVisibilityClass} ${sidebarStateClass} overflow-hidden bg-[linear-gradient(180deg,rgba(8,47,73,0.55),rgba(15,23,42,0.92))] p-4 sm:p-6`}
         >
-          <div>
-            <div className="flex items-start justify-between gap-3 rounded-3xl border border-white/10 bg-white/8 p-5">
-              <div className="flex flex-col min-w-0 items-start gap-2">
-                <div className="flex h-12 w-40 shrink-0 items-center justify-center rounded-2xl border border-sky-300/25 bg-sky-300/12 text-lg font-black text-sky-100 shadow-[0_16px_34px_rgba(56,189,248,0.12)]">
-                  Organize Me
+          <div className="flex h-full min-h-0 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <div className="flex items-start justify-between gap-3 rounded-3xl border border-white/10 bg-white/8 p-5">
+                <div className="flex flex-col min-w-0 items-start gap-2">
+                  <button
+                    className={`flex h-12 w-40 shrink-0 items-center justify-center rounded-2xl border text-lg font-black text-sky-100 shadow-[0_16px_34px_rgba(56,189,248,0.12)] transition hover:bg-sky-300/18 ${
+                      activeView === 'dashboard'
+                        ? 'border-sky-300/40 bg-sky-300/18'
+                        : 'border-sky-300/25 bg-sky-300/12'
+                    }`}
+                    onClick={() => {
+                      handleSelectView('dashboard')
+                    }}
+                    type="button"
+                  >
+                    Organize Me
+                  </button>
                 </div>
+
+                <button
+                  aria-label="Cerrar sidebar"
+                  className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/45 text-slate-200 transition hover:bg-white/10"
+                  onClick={() => {
+                    setIsSidebarOpen(false)
+                  }}
+                  type="button"
+                >
+                  <X className="h-6 w-6" />
+                </button>
               </div>
 
-              <button
-                aria-label="Cerrar sidebar"
-                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/45 text-slate-200 transition hover:bg-white/10"
-                onClick={() => {
-                  setIsSidebarOpen(false)
-                }}
-                type="button"
-              >
-                <X className="h-6 w-6" />
-              </button>
+              <nav className="mt-8 space-y-3">
+                {navigationItems.map((item) => (
+                  <SidebarNavButton
+                    key={item.id}
+                    active={activeView === item.id}
+                    description={item.description}
+                    icon={<item.icon className="h-5 w-5" />}
+                    onClick={() => {
+                      handleSelectView(item.id)
+                    }}
+                    title={item.title}
+                  />
+                ))}
+              </nav>
             </div>
 
-            <nav className="mt-8 space-y-3">
-              {navigationItems.map((item) => (
-                <SidebarNavButton
-                  key={item.id}
-                  active={activeView === item.id}
-                  description={item.description}
-                  icon={<item.icon className="h-5 w-5" />}
-                  onClick={() => {
-                    handleSelectView(item.id)
-                  }}
-                  title={item.title}
-                />
-              ))}
+            <nav className="mt-6 border-t border-white/10 pt-4">
+              <SidebarNavButton
+                active={activeView === accountNavigationItem.id}
+                icon={<accountNavigationItem.icon className="h-5 w-5" />}
+                onClick={() => {
+                  handleSelectView(accountNavigationItem.id)
+                }}
+                title={accountNavigationItem.title}
+              />
             </nav>
           </div>
         </aside>
 
         <section className="flex min-w-0 w-full flex-1 flex-col">
-          <header className="border-b border-white/10 px-5 py-5 sm:px-8 lg:px-10">
+          <header className="border-b border-white/10 px-4 py-4 sm:px-8 sm:py-5 lg:px-10">
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex items-start gap-4">
@@ -267,28 +309,17 @@ function Home() {
                     <p className="text-sm font-semibold uppercase tracking-[0.28em] text-sky-200/70">
                       Bienvenido 
                     </p>
-                    <h2 className="mt-2 text-3xl font-semibold text-white">
+                    <h2 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
                       {getActiveViewTitle(activeView)}
                     </h2>
                   </div>
                 </div>
 
-                <button
-                  className="inline-flex items-center justify-center gap-2 self-start rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-70"
-                  disabled={isLoggingOut}
-                  onClick={() => {
-                    void handleLogout()
-                  }}
-                  type="button"
-                >
-                  <LogOut className="h-4 w-4" />
-                  {isLoggingOut ? 'Cerrando...' : 'Cerrar sesion'}
-                </button>
               </div>
             </div>
           </header>
 
-          <div className="flex-1 px-5 py-6 sm:px-8 lg:px-10">
+          <div className="min-w-0 flex-1 px-4 py-5 sm:px-8 sm:py-6 lg:px-10">
             {logoutError ? (
               <div className="mb-6 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
                 {logoutError}
@@ -323,6 +354,25 @@ function Home() {
                 userId={user.id}
               />
             ) : null}
+
+            {activeView === 'nutricion' && user ? (
+              <ModuloNutricion
+                onDataChanged={handleDataChanged}
+                userId={user.id}
+              />
+            ) : null}
+
+            {activeView === 'ajustes' && user ? (
+              <ModuloAjustesCuenta
+                isLoggingOut={isLoggingOut}
+                logoutError={logoutError}
+                onDataChanged={handleDataChanged}
+                onLogout={() => {
+                  void handleLogout()
+                }}
+                user={user}
+              />
+            ) : null}
           </div>
         </section>
       </div>
@@ -344,13 +394,13 @@ function DashboardOverview({
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+        <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
                 Balance disponible
               </p>
-              <h3 className="mt-3 text-3xl font-semibold text-white">
+              <h3 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
                 {loading ? 'Cargando...' : formatCurrency(summary.saldoTotal)}
               </h3>
             </div>
@@ -362,11 +412,11 @@ function DashboardOverview({
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
-          <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+        <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
             Actividades de hoy
           </p>
-          <h3 className="mt-3 text-3xl font-semibold text-white">
+          <h3 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
             {loading ? '...' : summary.tareasHoy.length}
           </h3>
         </div>
@@ -378,13 +428,13 @@ function DashboardOverview({
         </div>
       ) : null}
 
-      <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+      <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
               Agenda de hoy
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
               {formatDateLabel(new Date(), {
                 weekday: 'long',
                 day: 'numeric',
@@ -402,7 +452,7 @@ function DashboardOverview({
             summary.tareasHoy.map((actividad) => (
               <div
                 key={actividad.id}
-                className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-slate-900/45 p-5 md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-slate-900/45 p-4 md:flex-row md:items-center md:justify-between sm:p-5"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
@@ -420,7 +470,7 @@ function DashboardOverview({
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200">
+                <div className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-200 md:w-auto">
                   {getDashboardTimeLabel(actividad)}
                 </div>
               </div>
@@ -438,7 +488,7 @@ function DashboardOverview({
 
 type SidebarNavButtonProps = {
   active: boolean
-  description: string
+  description?: string
   icon: ReactNode
   onClick: () => void
   title: string
@@ -453,7 +503,7 @@ function SidebarNavButton({
 }: SidebarNavButtonProps) {
   return (
     <button
-      className={`w-full rounded-3xl border p-5 text-left transition ${
+      className={`w-full rounded-3xl border p-4 text-left transition sm:p-5 ${
         active
           ? 'border-sky-300/35 bg-sky-300/12 shadow-[0_16px_40px_rgba(56,189,248,0.08)]'
           : 'border-white/10 bg-white/6 hover:bg-white/10'
@@ -475,7 +525,9 @@ function SidebarNavButton({
           <p className="text-base font-semibold text-white">{title}</p>
         </div>
       </div>
-      <p className="mt-4 text-sm leading-6 text-slate-300">{description}</p>
+      {description ? (
+        <p className="mt-4 text-sm leading-6 text-slate-300">{description}</p>
+      ) : null}
     </button>
   )
 }
@@ -527,5 +579,13 @@ function getActiveViewTitle(activeView: DashboardView) {
     return 'Finanzas Personales'
   }
 
-  return 'Entrenamiento'
+  if (activeView === 'entrenamiento') {
+    return 'Entrenamiento'
+  }
+
+  if (activeView === 'nutricion') {
+    return 'Nutricion'
+  }
+
+  return 'Ajustes de cuenta'
 }

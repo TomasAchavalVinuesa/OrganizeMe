@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OrganizeMe</string>
+    <string name="title_activity_main">OrganizeMe</string>
+    <string name="package_name">com.tomas.organizeme</string>
+    <string name="custom_url_scheme">com.tomas.organizeme</string>
+</resources>

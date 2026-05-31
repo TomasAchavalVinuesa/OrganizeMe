@@ -15,12 +15,16 @@
 }
 
 html {
+  width: 100%;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
 body {
+  width: 100%;
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top, rgba(56, 189, 248, 0.14), transparent 28%),
     radial-gradient(circle at right, rgba(148, 163, 184, 0.14), transparent 22%),
@@ -43,5 +47,7 @@ input {
 }
 
 #root {
+  width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
 }

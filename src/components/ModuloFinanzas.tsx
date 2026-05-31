@@ -480,7 +480,7 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-5 sm:space-y-6">
       {error ? (
         <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
           {error}
@@ -493,13 +493,13 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
         </div>
       ) : null}
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+      <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
               Finanzas Personales
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
               Cuentas, movimientos y metas con mejor gestion
             </h3>
           </div>
@@ -533,7 +533,7 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
         </div>
 
         {isLoading ? (
-          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/45 p-6 text-sm text-slate-300">
+          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/45 p-4 text-sm text-slate-300 sm:p-6">
             Cargando cuentas, transacciones y metas...
           </div>
         ) : null}
@@ -541,14 +541,14 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
 
       {!isLoading && activeTab === 'cuentas' ? (
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
             <div className="flex items-center gap-3">
               <WalletCards className="h-5 w-5 text-sky-200" />
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
                   Panel de cuentas
                 </p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
+                <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                   {formatCurrency(cuentasTotales)}
                 </h3>
               </div>
@@ -571,7 +571,7 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
                       <Landmark className="h-5 w-5 text-sky-200" />
                     </div>
 
-                    <p className="mt-5 text-2xl font-semibold text-white">
+                    <p className="mt-5 break-words text-xl font-semibold text-white sm:text-2xl">
                       {formatCurrency(cuenta.saldo_actual)}
                     </p>
                   </article>
@@ -585,13 +585,13 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
           </div>
 
           <form
-            className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]"
+            className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6"
             onSubmit={handleCreateAccount}
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
               Nueva cuenta
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
               Agrega efectivo, banco o billetera virtual
             </h3>
 
@@ -647,7 +647,7 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
       {!isLoading && activeTab === 'transacciones' ? (
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.85fr)]">
           <form
-            className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]"
+            className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6"
             onSubmit={handleCreateTransaction}
           >
             <div className="flex items-center gap-3">
@@ -659,10 +659,10 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
                 <ArrowDownCircle className="h-5 w-5 text-rose-300" />
               )}
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
                   Registro de transacciones
                 </p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
+                <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                   Ingresa, registra un gasto o una transferencia
                 </h3>
               </div>
@@ -755,11 +755,11 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
             </button>
           </form>
 
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
               Ultimos movimientos
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
               Historial reciente
             </h3>
 
@@ -768,7 +768,7 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
                 transacciones.map((transaccion) => (
                   <div
                     key={transaccion.id}
-                    className="flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-slate-900/45 p-4"
+                    className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-900/45 p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-white">
@@ -785,7 +785,7 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
                     </div>
 
                     <span
-                      className={`text-sm font-semibold ${
+                      className={`self-start text-sm font-semibold sm:self-center ${
                         transaccion.tipo === 'ingreso'
                           ? 'text-emerald-300'
                           : transaccion.tipo === 'transferencia'
@@ -813,15 +813,15 @@ function ModuloFinanzas({ onDataChanged, userId }: ModuloFinanzasProps) {
       ) : null}
 
       {!isLoading && activeTab === 'metas' ? (
-        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <PiggyBank className="h-5 w-5 text-sky-200" />
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
                   Objetivos de ahorro
                 </p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
+                <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                   Metas por horizonte
                 </h3>
               </div>
@@ -1087,7 +1087,7 @@ function FinanzasTabButton({
 }: FinanzasTabButtonProps) {
   return (
     <button
-      className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+      className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition sm:w-auto ${
         active
           ? 'border-sky-300/35 bg-sky-300/12 text-sky-100'
           : 'border-white/10 bg-white/6 text-slate-300'
@@ -1110,7 +1110,7 @@ type GoalTabButtonProps = {
 function GoalTabButton({ active, label, onClick }: GoalTabButtonProps) {
   return (
     <button
-      className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+      className={`w-full rounded-2xl border px-4 py-3 text-sm font-medium transition sm:w-auto ${
         active
           ? 'border-sky-300/35 bg-sky-300/12 text-sky-100'
           : 'border-white/10 bg-white/6 text-slate-300'
@@ -1146,14 +1146,14 @@ type ModalFrameProps = {
 
 function ModalFrame({ children, onClose, subtitle, title }: ModalFrameProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-4 py-8 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-[2rem] border border-white/10 bg-slate-950/95 p-6 shadow-[0_24px_100px_rgba(2,6,23,0.65)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-8">
+      <div className="max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 p-4 shadow-[0_24px_100px_rgba(2,6,23,0.65)] sm:max-h-[calc(100vh-4rem)] sm:rounded-[2rem] sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
               {title}
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">{subtitle}</h3>
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">{subtitle}</h3>
           </div>
 
           <button

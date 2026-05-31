@@ -49,17 +49,17 @@ function Register() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
+    <main className="relative flex min-h-screen items-center justify-center overflow-x-hidden px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(125,211,252,0.2),_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(14,165,233,0.16),_transparent_30%)]" />
 
-      <section className="relative grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/55 shadow-[0_30px_120px_rgba(2,6,23,0.55)] backdrop-blur-xl lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="order-2 border-t border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.35),rgba(2,6,23,0.08))] p-8 lg:order-1 lg:border-t-0 lg:border-r">
+      <section className="relative grid w-full max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950/55 shadow-[0_30px_120px_rgba(2,6,23,0.55)] backdrop-blur-xl sm:rounded-[2rem] lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="order-2 hidden border-t border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.35),rgba(2,6,23,0.08))] p-8 md:block lg:order-1 lg:border-t-0 lg:border-r">
           <span className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-300/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-sky-100">
             <ShieldPlus className="h-4 w-4" />
             Acceso seguro
           </span>
 
-          <h1 className="mt-7 text-3xl font-semibold text-white sm:text-4xl">
+          <h1 className="mt-7 text-2xl font-semibold text-white sm:text-4xl">
             Crea tu cuenta y empieza a organizarlo todo.
           </h1>
           <p className="mt-4 max-w-lg text-sm leading-7 text-slate-300">
@@ -80,12 +80,12 @@ function Register() {
           </div>
         </div>
 
-        <div className="order-1 p-6 sm:p-8 lg:order-2 lg:p-12">
+        <div className="order-1 w-full p-5 sm:p-8 lg:order-2 lg:p-12">
           <div className="mx-auto w-full max-w-md">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-200/75">
               Nueva cuenta
             </p>
-            <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
+            <h2 className="mt-4 text-2xl font-semibold text-white sm:text-4xl">
               Registrate
             </h2>
             <p className="mt-3 text-sm leading-6 text-slate-300">

@@ -233,15 +233,24 @@ const monthOptions = [
 ]
 
 const selectClassName =
-  'w-full rounded-2xl border border-white/10 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition focus:border-sky-300/65 focus:ring-4 focus:ring-sky-300/15'
+  'min-h-12 w-full rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-sky-300/65 focus:bg-slate-950/70 focus:ring-4 focus:ring-sky-300/15 sm:text-sm'
 
 const optionClassName = 'bg-slate-900 text-white'
 
 const inputClassName =
-  'w-full rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-sky-300/65 focus:ring-4 focus:ring-sky-300/15'
+  'min-h-12 w-full rounded-2xl border border-white/10 bg-slate-950/35 px-4 py-3 text-base text-white outline-none transition placeholder:text-slate-400 focus:border-sky-300/65 focus:bg-slate-950/70 focus:ring-4 focus:ring-sky-300/15 sm:text-sm'
 
 const textareaClassName =
-  'min-h-28 w-full rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-sky-300/65 focus:ring-4 focus:ring-sky-300/15'
+  'min-h-32 w-full resize-y rounded-2xl border border-white/10 bg-slate-950/35 px-4 py-3 text-base leading-7 text-white outline-none transition placeholder:text-slate-400 focus:border-sky-300/65 focus:bg-slate-950/70 focus:ring-4 focus:ring-sky-300/15 sm:text-sm'
+
+const formPanelClassName =
+  'rounded-3xl border border-white/10 bg-slate-900/45 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5'
+
+const softFormPanelClassName =
+  'rounded-3xl border border-white/10 bg-white/[0.04] p-4 sm:p-5'
+
+const checkboxClassName =
+  'h-5 w-5 shrink-0 rounded border-white/20 bg-slate-950/60 accent-sky-300'
 
 const hiddenTaskNotePrefix = '[[descripcion]]'
 const hiddenTaskPomodoroPrefix = '[[pomodoro:'
@@ -1935,7 +1944,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
   const isEditingRecurringActivity = Boolean(editingActivity?.serie_id)
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-5 sm:space-y-6">
       {error ? (
         <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
           {error}
@@ -1948,10 +1957,10 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
         </div>
       ) : null}
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+      <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
              Gestor de actividades, calendario y tareas
             </h3>
           </div>
@@ -1985,26 +1994,26 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
         </div>
 
         {isLoading ? (
-          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/45 p-6 text-sm text-slate-300">
+          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/45 p-4 text-sm text-slate-300 sm:p-6">
             Cargando calendario, agenda y tablero...
           </div>
         ) : null}
       </section>
 
       {!isLoading && activeTab === 'calendario' ? (
-        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
                 Calendario mensual
               </p>
-              <h3 className="mt-2 text-2xl font-semibold text-white">
+              <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                 {formatDateLabel(currentMonth, { month: 'long', year: 'numeric' })}
               </h3>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="grid grid-cols-2 gap-3 sm:w-auto">
+              <div className="grid w-full grid-cols-2 gap-3 sm:w-auto">
                 <label className="min-w-36">
                   <span className="sr-only">Mes</span>
                   <select
@@ -2049,7 +2058,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
               </div>
 
               <button
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10 sm:w-auto"
                 onClick={() => {
                   setCurrentMonth((currentValue) => {
                     const previousMonth = new Date(currentValue)
@@ -2063,7 +2072,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 Mes anterior
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10 sm:w-auto"
                 onClick={() => {
                   setCurrentMonth((currentValue) => {
                     const nextMonth = new Date(currentValue)
@@ -2077,7 +2086,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 <ChevronRight className="h-4 w-4" />
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 sm:w-auto"
                 onClick={() => {
                   openEventModal()
                 }}
@@ -2089,87 +2098,91 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-7 gap-3 text-center text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-            {['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].map((dayLabel) => (
-              <div key={dayLabel}>{dayLabel}</div>
-            ))}
-          </div>
+          <div className="mt-6 overflow-x-auto pb-2">
+            <div className="min-w-[720px]">
+              <div className="grid grid-cols-7 gap-3 text-center text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                {['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].map((dayLabel) => (
+                  <div key={dayLabel}>{dayLabel}</div>
+                ))}
+              </div>
 
-          <div className="mt-4 grid grid-cols-7 gap-3">
-            {monthCalendarCells.map((day, index) => {
-              if (!day) {
-                return (
-                  <div
-                    key={`empty-day-${index}`}
-                    className="min-h-36 rounded-3xl border border-transparent bg-transparent"
-                  />
-                )
-              }
+              <div className="mt-4 grid grid-cols-7 gap-3">
+                {monthCalendarCells.map((day, index) => {
+                  if (!day) {
+                    return (
+                      <div
+                        key={`empty-day-${index}`}
+                        className="min-h-36 rounded-3xl border border-transparent bg-transparent"
+                      />
+                    )
+                  }
 
-              const dayKey = startOfDay(day).toISOString()
-              const dayActivities = calendarActivities[dayKey] ?? []
-              const isToday = isSameDay(day, new Date())
+                  const dayKey = startOfDay(day).toISOString()
+                  const dayActivities = calendarActivities[dayKey] ?? []
+                  const isToday = isSameDay(day, new Date())
 
-              return (
-                <div
-                  key={dayKey}
-                  className="min-h-36 rounded-3xl border border-white/10 bg-slate-900/45 p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`text-sm font-semibold ${
-                        isToday
-                          ? 'rounded-full bg-sky-300 px-2 py-1 text-slate-950'
-                          : 'text-white'
-                      }`}
+                  return (
+                    <div
+                      key={dayKey}
+                      className="min-h-36 rounded-3xl border border-white/10 bg-slate-900/45 p-3"
                     >
-                      {day.getDate()}
-                    </span>
-                  </div>
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`text-sm font-semibold ${
+                            isToday
+                              ? 'rounded-full bg-sky-300 px-2 py-1 text-slate-950'
+                              : 'text-white'
+                          }`}
+                        >
+                          {day.getDate()}
+                        </span>
+                      </div>
 
-                  <div className="mt-4 space-y-2">
-                    {dayActivities.slice(0, 4).map((actividad) => (
-                      <button
-                        key={actividad.id}
-                        className={`w-full rounded-xl px-3 py-2 text-left shadow-sm transition hover:brightness-110 ${
-                          actividad.isBirthdayHighlight
-                            ? 'ring-1 ring-amber-300/60 ring-offset-0'
-                            : ''
-                        }`}
-                        onClick={() => {
-                          const selectedActivity = actividades.find(
-                            (candidate) => candidate.id === actividad.id,
-                          )
-                          if (selectedActivity) {
-                            setPreviewActivity(selectedActivity)
-                          }
-                        }}
-                        style={{ backgroundColor: actividad.color }}
-                        type="button"
-                      >
-                        <p className="truncate text-xs font-semibold text-white">
-                          {actividad.titulo}
-                        </p>
-                        <p className="mt-1 truncate text-[11px] text-white/85">
-                          {actividad.timeLabel} | {actividad.subtitle}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
+                      <div className="mt-4 space-y-2">
+                        {dayActivities.slice(0, 4).map((actividad) => (
+                          <button
+                            key={actividad.id}
+                            className={`w-full rounded-xl px-3 py-2 text-left shadow-sm transition hover:brightness-110 ${
+                              actividad.isBirthdayHighlight
+                                ? 'ring-1 ring-amber-300/60 ring-offset-0'
+                                : ''
+                            }`}
+                            onClick={() => {
+                              const selectedActivity = actividades.find(
+                                (candidate) => candidate.id === actividad.id,
+                              )
+                              if (selectedActivity) {
+                                setPreviewActivity(selectedActivity)
+                              }
+                            }}
+                            style={{ backgroundColor: actividad.color }}
+                            type="button"
+                          >
+                            <p className="truncate text-xs font-semibold text-white">
+                              {actividad.titulo}
+                            </p>
+                            <p className="mt-1 truncate text-[11px] text-white/85">
+                              {actividad.timeLabel} | {actividad.subtitle}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         </section>
       ) : null}
 
       {!isLoading && activeTab === 'agenda' ? (
-        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-center gap-3">
               <Clock3 className="h-5 w-5 text-sky-200" />
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
                   Agenda semanal
                 </p>
               </div>
@@ -2203,7 +2216,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 Escala actual: {agendaZoomLabels[agendaZoomMinutes]}
               </div>
               <button
-                className="inline-flex items-center gap-2 rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300 sm:w-auto"
                 onClick={() => {
                   openEventModal(new Date())
                 }}
@@ -2232,12 +2245,12 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
           </div>
 
           <div className="mt-6 overflow-x-auto">
-            <div className="min-w-[1240px]">
-              <div className="grid grid-cols-[repeat(7,minmax(150px,1fr))_120px] gap-4">
+            <div className="min-w-[920px] lg:min-w-[1240px]">
+              <div className="grid grid-cols-[repeat(7,minmax(104px,1fr))_96px] gap-3 lg:grid-cols-[repeat(7,minmax(150px,1fr))_120px] lg:gap-4">
                 {weeklyAgendaColumns.map(({ day }) => (
                   <div
                     key={day.toISOString()}
-                    className="rounded-3xl border border-white/10 bg-slate-900/45 px-4 py-5"
+                    className="rounded-3xl border border-white/10 bg-slate-900/45 px-3 py-4 lg:px-4 lg:py-5"
                   >
                     <p className="text-base font-semibold text-white">
                       {formatDateLabel(day, { weekday: 'long' })} {day.getDate()}
@@ -2253,7 +2266,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-[repeat(7,minmax(150px,1fr))_120px] gap-4 items-start">
+              <div className="mt-4 grid grid-cols-[repeat(7,minmax(104px,1fr))_96px] items-start gap-3 lg:grid-cols-[repeat(7,minmax(150px,1fr))_120px] lg:gap-4">
                 {weeklyAgendaColumns.map(({ day, timedActivities }) => {
                   const rowHeight = agendaRowHeights[agendaZoomMinutes]
                   const timelineHeight = weeklyScheduleSlots.length * rowHeight
@@ -2389,10 +2402,10 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
       ) : null}
 
       {!isLoading && activeTab === 'kanban' ? (
-        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+        <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
                 Administra tus tareas
               </p>
               
@@ -2720,79 +2733,81 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
               : 'Crea eventos, recordatorios o bloques de tiempo'
           }
         >
-          <form className="mt-6 space-y-4" onSubmit={handleCreateEvent}>
-            <div className="grid gap-4 md:grid-cols-2">
-              <FieldLabel label="Titulo">
-                <input
-                  required
-                  className={inputClassName}
-                  name="titulo"
+          <form className="mt-5 space-y-5 sm:mt-6" onSubmit={handleCreateEvent}>
+            <div className={softFormPanelClassName}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <FieldLabel label="Titulo">
+                  <input
+                    required
+                    className={inputClassName}
+                    name="titulo"
+                    onChange={handleEventInputChange}
+                    placeholder="Titulo de la actividad"
+                    value={eventForm.titulo}
+                  />
+                </FieldLabel>
+
+                <FieldLabel label="Tipo de actividad">
+                  <select
+                    className={selectClassName}
+                    name="category"
+                    onChange={handleEventInputChange}
+                    value={eventForm.category}
+                  >
+                    {Object.entries(activityCategoryLabels).map(([value, label]) => (
+                      <option key={value} className={optionClassName} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </FieldLabel>
+              </div>
+
+              <FieldLabel className="mt-4" label="Descripcion">
+                <textarea
+                  className={textareaClassName}
+                  name="descripcion"
                   onChange={handleEventInputChange}
-                  placeholder="Titulo de la actividad"
-                  value={eventForm.titulo}
+                  placeholder="Descripcion de la actividad"
+                  value={eventForm.descripcion}
                 />
               </FieldLabel>
 
-              <FieldLabel label="Tipo de actividad">
-                <select
-                  className={selectClassName}
-                  name="category"
-                  onChange={handleEventInputChange}
-                  value={eventForm.category}
+              <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_140px]">
+                <label
+                  className={`flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 text-sm transition ${
+                    eventForm.visibleMonthly
+                      ? 'border-sky-300/40 bg-sky-300/12 text-sky-100'
+                      : 'border-white/10 bg-slate-950/25 text-slate-300 hover:bg-white/8'
+                  }`}
                 >
-                  {Object.entries(activityCategoryLabels).map(([value, label]) => (
-                    <option key={value} className={optionClassName} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </FieldLabel>
-            </div>
+                  <span className="flex min-w-0 items-center gap-3 font-medium">
+                    <Eye className="h-4 w-4 shrink-0" />
+                    <span className="break-words">Ver en calendario mensual</span>
+                  </span>
+                  <input
+                    checked={eventForm.visibleMonthly}
+                    className={checkboxClassName}
+                    name="visibleMonthly"
+                    onChange={handleEventInputChange}
+                    type="checkbox"
+                  />
+                </label>
 
-            <FieldLabel label="Descripcion">
-              <textarea
-                className={textareaClassName}
-                name="descripcion"
-                onChange={handleEventInputChange}
-                placeholder="Descripcion de la actividad"
-                value={eventForm.descripcion}
-              />
-            </FieldLabel>
-
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_120px]">
-              <label
-                className={`flex min-h-[76px] items-center justify-between gap-4 rounded-2xl border px-4 py-3 text-sm transition ${
-                  eventForm.visibleMonthly
-                    ? 'border-sky-300/35 bg-sky-300/12 text-sky-100'
-                    : 'border-white/10 bg-white/6 text-slate-300'
-                }`}
-              >
-                <span className="flex items-center gap-3 font-medium">
-                  <Eye className="h-4 w-4" />
-                  Ver en calendario mensual
-                </span>
-                <input
-                  checked={eventForm.visibleMonthly}
-                  className="h-4 w-4 rounded border-white/20 bg-slate-950/60 accent-sky-300"
-                  name="visibleMonthly"
-                  onChange={handleEventInputChange}
-                  type="checkbox"
-                />
-              </label>
-
-              <FieldLabel label="Color">
-                <input
-                  className="h-[52px] w-full rounded-2xl border border-white/10 bg-slate-800 px-2 py-2"
-                  name="color"
-                  onChange={handleEventInputChange}
-                  type="color"
-                  value={eventForm.color}
-                />
-              </FieldLabel>
+                <FieldLabel label="Color">
+                  <input
+                    className="h-12 w-full cursor-pointer rounded-2xl border border-white/10 bg-slate-950/45 px-2 py-2"
+                    name="color"
+                    onChange={handleEventInputChange}
+                    type="color"
+                    value={eventForm.color}
+                  />
+                </FieldLabel>
+              </div>
             </div>
 
             {isDateTimeRangeCategory(eventForm.category) ? (
-              <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-900/45 p-4">
+              <div className={`${formPanelClassName} space-y-4`}>
                 <div className="grid gap-4 md:grid-cols-2">
                   <FieldLabel label="Fecha de inicio">
                     <input
@@ -2817,10 +2832,10 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                 </div>
 
                 {eventForm.category === 'juntada' ? (
-                  <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/25 px-4 py-4 text-sm text-white transition hover:bg-white/8">
                     <input
                       checked={eventForm.hasEndDateTime}
-                      className="h-4 w-4 rounded border-white/20 bg-slate-950/60 accent-sky-300"
+                      className={checkboxClassName}
                       name="hasEndDateTime"
                       onChange={handleEventInputChange}
                       type="checkbox"
@@ -2857,7 +2872,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
             ) : null}
 
             {isRecurringActivityCategory(eventForm.category) ? (
-              <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-900/45 p-4">
+              <div className={`${formPanelClassName} space-y-4`}>
                 <div className="grid gap-4 md:grid-cols-3">
                   <FieldLabel label="Repetir desde">
                     <input
@@ -2902,7 +2917,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                       return (
                         <button
                           key={day.value}
-                          className={`rounded-2xl border px-3 py-3 text-xs font-semibold uppercase tracking-[0.16em] transition ${
+                          className={`min-h-12 rounded-2xl border px-3 py-3 text-xs font-semibold uppercase tracking-[0.16em] transition ${
                             active
                               ? 'border-sky-300/35 bg-sky-300/12 text-sky-100'
                               : 'border-white/10 bg-white/6 text-slate-300 hover:bg-white/10'
@@ -2922,7 +2937,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
             ) : null}
 
             {eventForm.category === 'cumpleanos' ? (
-              <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-900/45 p-4">
+              <div className={`${formPanelClassName} space-y-4`}>
                 <FieldLabel label="Fecha del día especial">
                   <input
                     required
@@ -2934,10 +2949,10 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                   />
                 </FieldLabel>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white">
+                <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/25 px-4 py-4 text-sm text-white transition hover:bg-white/8">
                   <input
                     checked={eventForm.repeatEvent}
-                    className="h-4 w-4 rounded border-white/20 bg-slate-950/60 accent-sky-300"
+                    className={checkboxClassName}
                     name="repeatEvent"
                     onChange={handleEventInputChange}
                     type="checkbox"
@@ -2983,10 +2998,10 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                   />
                 </FieldLabel>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white">
+                <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/25 px-4 py-4 text-sm text-white transition hover:bg-white/8">
                   <input
                     checked={eventForm.wantsGift}
-                    className="h-4 w-4 rounded border-white/20 bg-slate-950/60 accent-sky-300"
+                    className={checkboxClassName}
                     name="wantsGift"
                     onChange={handleEventInputChange}
                     type="checkbox"
@@ -3160,7 +3175,7 @@ function ModuloTiempo({ onDataChanged, userId }: ModuloTiempoProps) {
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/75">
                     Titulo
                   </p>
-                  <h4 className="mt-2 break-words text-2xl font-semibold text-white">
+                  <h4 className="mt-2 break-words text-xl font-semibold text-white sm:text-2xl">
                     {previewActivity.titulo}
                   </h4>
                 </div>
@@ -3528,7 +3543,7 @@ function TiempoTabButton({
 }: TiempoTabButtonProps) {
   return (
     <button
-      className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+      className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition sm:w-auto ${
         active
           ? 'border-sky-300/35 bg-sky-300/12 text-sky-100'
           : 'border-white/10 bg-white/6 text-slate-300'
@@ -3550,8 +3565,8 @@ type FieldLabelProps = {
 
 function FieldLabel({ children, className = '', label }: FieldLabelProps) {
   return (
-    <label className={`block space-y-2 ${className}`}>
-      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+    <label className={`block min-w-0 space-y-2 ${className}`}>
+      <span className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 sm:text-xs sm:tracking-[0.2em]">
         {label}
       </span>
       {children}
@@ -3566,7 +3581,7 @@ type ReadOnlyFieldProps = {
 
 function ReadOnlyField({ label, value }: ReadOnlyFieldProps) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-slate-900/45 p-5">
+    <div className="rounded-3xl border border-white/10 bg-slate-900/45 p-4 sm:p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/75">
         {label}
       </p>
@@ -3584,18 +3599,18 @@ type ModalFrameProps = {
 
 function ModalFrame({ children, onClose, subtitle, title }: ModalFrameProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-4 py-8 backdrop-blur-sm">
-      <div className="max-h-[calc(100vh-4rem)] w-full max-w-3xl overflow-y-auto rounded-[2rem] border border-white/10 bg-slate-950/95 p-6 shadow-[0_24px_100px_rgba(2,6,23,0.65)]">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-sky-200/75">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-8">
+      <div className="max-h-[calc(100vh-2rem)] w-full max-w-4xl overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 p-4 shadow-[0_24px_100px_rgba(2,6,23,0.65)] sm:max-h-[calc(100vh-4rem)] sm:rounded-[2rem] sm:p-6">
+        <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-4 sm:gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-200/75 sm:text-sm sm:tracking-[0.26em]">
               {title}
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">{subtitle}</h3>
+            <h3 className="mt-2 break-words text-xl font-semibold text-white sm:text-2xl">{subtitle}</h3>
           </div>
 
           <button
-            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/6 text-white transition hover:bg-white/10"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/6 text-white transition hover:bg-white/10"
             onClick={onClose}
             type="button"
           >

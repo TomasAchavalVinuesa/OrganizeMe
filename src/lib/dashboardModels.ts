@@ -123,6 +123,83 @@ export type EntrenamientoObjetivo = {
   user_id: string
 }
 
+export type NutricionGenero = 'masculino' | 'femenino' | 'otro'
+
+export type NutricionObjetivo =
+  | 'perdida_grasa'
+  | 'ganancia_muscular'
+  | 'mantenimiento'
+
+export type NutricionTipoComida =
+  | 'desayuno'
+  | 'almuerzo'
+  | 'merienda'
+  | 'cena'
+  | 'snack'
+
+export type NutricionPerfil = {
+  altura_cm: number
+  created_at: string | null
+  edad: number
+  genero: NutricionGenero
+  hidratacion_objetivo_ml: number
+  id: string
+  objetivo_composicion: NutricionObjetivo
+  peso_kg: number
+  updated_at: string | null
+  user_id: string
+}
+
+export type NutricionAlimento = {
+  calorias: number
+  carbohidratos_g: number
+  created_at: string | null
+  created_by: string | null
+  fibra_g: number
+  grasas_g: number
+  gramos_por_porcion: number
+  id: string
+  nombre: string
+  proteinas_g: number
+  sodio_mg: number
+  updated_at: string | null
+}
+
+export type NutricionComida = {
+  consumida_at: string
+  created_at: string | null
+  id: string
+  nombre_plato: string
+  tipo_comida: NutricionTipoComida
+  updated_at: string | null
+  user_id: string
+}
+
+export type NutricionComidaAlimento = {
+  alimento_id: string
+  comida_id: string
+  id: string
+  porciones: number
+}
+
+export type NutricionHidratacion = {
+  consumido_ml: number
+  created_at: string | null
+  fecha: string
+  id: string
+  objetivo_ml: number
+  updated_at: string | null
+  user_id: string
+}
+
+export type NutricionPeso = {
+  created_at: string | null
+  fecha: string
+  id: string
+  peso_kg: number
+  user_id: string
+}
+
 export function normalizeActividad(row: unknown, index: number): Actividad {
   const safeRow = asRow(row)
   const tipo = normalizeActividadTipo(readString(safeRow.tipo))
@@ -302,6 +379,116 @@ export function normalizeEntrenamientoObjetivo(
   }
 }
 
+export function normalizeNutricionPerfil(
+  row: unknown,
+  index: number,
+): NutricionPerfil {
+  const safeRow = asRow(row)
+
+  return {
+    id: readString(safeRow.id) ?? `nutricion-perfil-${index}`,
+    user_id: readString(safeRow.user_id) ?? '',
+    peso_kg: Math.max(1, readNumber(safeRow.peso_kg) ?? 70),
+    altura_cm: Math.max(1, readNumber(safeRow.altura_cm) ?? 170),
+    edad: Math.max(1, readNumber(safeRow.edad) ?? 30),
+    genero: normalizeNutritionGender(readString(safeRow.genero)),
+    objetivo_composicion: normalizeNutritionGoal(
+      readString(safeRow.objetivo_composicion),
+    ),
+    hidratacion_objetivo_ml: Math.max(
+      1,
+      readNumber(safeRow.hidratacion_objetivo_ml) ?? 3000,
+    ),
+    created_at: readString(safeRow.created_at),
+    updated_at: readString(safeRow.updated_at),
+  }
+}
+
+export function normalizeNutricionAlimento(
+  row: unknown,
+  index: number,
+): NutricionAlimento {
+  const safeRow = asRow(row)
+
+  return {
+    id: readString(safeRow.id) ?? `nutricion-alimento-${index}`,
+    created_by: readString(safeRow.created_by),
+    nombre: readString(safeRow.nombre) ?? 'Alimento sin nombre',
+    gramos_por_porcion: Math.max(1, readNumber(safeRow.gramos_por_porcion) ?? 100),
+    calorias: Math.max(0, readNumber(safeRow.calorias) ?? 0),
+    proteinas_g: Math.max(0, readNumber(safeRow.proteinas_g) ?? 0),
+    carbohidratos_g: Math.max(0, readNumber(safeRow.carbohidratos_g) ?? 0),
+    grasas_g: Math.max(0, readNumber(safeRow.grasas_g) ?? 0),
+    fibra_g: Math.max(0, readNumber(safeRow.fibra_g) ?? 0),
+    sodio_mg: Math.max(0, readNumber(safeRow.sodio_mg) ?? 0),
+    created_at: readString(safeRow.created_at),
+    updated_at: readString(safeRow.updated_at),
+  }
+}
+
+export function normalizeNutricionComida(
+  row: unknown,
+  index: number,
+): NutricionComida {
+  const safeRow = asRow(row)
+
+  return {
+    id: readString(safeRow.id) ?? `nutricion-comida-${index}`,
+    user_id: readString(safeRow.user_id) ?? '',
+    nombre_plato: readString(safeRow.nombre_plato) ?? 'Comida sin nombre',
+    tipo_comida: normalizeNutritionMealType(readString(safeRow.tipo_comida)),
+    consumida_at: readString(safeRow.consumida_at) ?? new Date().toISOString(),
+    created_at: readString(safeRow.created_at),
+    updated_at: readString(safeRow.updated_at),
+  }
+}
+
+export function normalizeNutricionComidaAlimento(
+  row: unknown,
+  index: number,
+): NutricionComidaAlimento {
+  const safeRow = asRow(row)
+
+  return {
+    id: readString(safeRow.id) ?? `nutricion-comida-alimento-${index}`,
+    comida_id: readString(safeRow.comida_id) ?? '',
+    alimento_id: readString(safeRow.alimento_id) ?? '',
+    porciones: Math.max(0.01, readNumber(safeRow.porciones) ?? 1),
+  }
+}
+
+export function normalizeNutricionHidratacion(
+  row: unknown,
+  index: number,
+): NutricionHidratacion {
+  const safeRow = asRow(row)
+
+  return {
+    id: readString(safeRow.id) ?? `nutricion-hidratacion-${index}`,
+    user_id: readString(safeRow.user_id) ?? '',
+    fecha: readString(safeRow.fecha) ?? new Date().toISOString().slice(0, 10),
+    objetivo_ml: Math.max(1, readNumber(safeRow.objetivo_ml) ?? 3000),
+    consumido_ml: Math.max(0, readNumber(safeRow.consumido_ml) ?? 0),
+    created_at: readString(safeRow.created_at),
+    updated_at: readString(safeRow.updated_at),
+  }
+}
+
+export function normalizeNutricionPeso(
+  row: unknown,
+  index: number,
+): NutricionPeso {
+  const safeRow = asRow(row)
+
+  return {
+    id: readString(safeRow.id) ?? `nutricion-peso-${index}`,
+    user_id: readString(safeRow.user_id) ?? '',
+    fecha: readString(safeRow.fecha) ?? new Date().toISOString().slice(0, 10),
+    peso_kg: Math.max(1, readNumber(safeRow.peso_kg) ?? 70),
+    created_at: readString(safeRow.created_at),
+  }
+}
+
 export function formatCurrency(value: number) {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
@@ -438,6 +625,40 @@ function normalizeTrainingGoalMetric(
   }
 
   return 'entrenamientos'
+}
+
+function normalizeNutritionGender(value: string | null): NutricionGenero {
+  if (value === 'masculino' || value === 'femenino' || value === 'otro') {
+    return value
+  }
+
+  return 'otro'
+}
+
+function normalizeNutritionGoal(value: string | null): NutricionObjetivo {
+  if (
+    value === 'perdida_grasa' ||
+    value === 'ganancia_muscular' ||
+    value === 'mantenimiento'
+  ) {
+    return value
+  }
+
+  return 'mantenimiento'
+}
+
+function normalizeNutritionMealType(value: string | null): NutricionTipoComida {
+  if (
+    value === 'desayuno' ||
+    value === 'almuerzo' ||
+    value === 'merienda' ||
+    value === 'cena' ||
+    value === 'snack'
+  ) {
+    return value
+  }
+
+  return 'snack'
 }
 
 function defaultActivityColor(tipo: Actividad['tipo']) {

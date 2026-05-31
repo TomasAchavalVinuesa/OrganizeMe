@@ -1118,7 +1118,7 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-5 sm:space-y-6">
       {error ? (
         <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
           {error}
@@ -1131,13 +1131,13 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
         </div>
       ) : null}
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+      <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
               Entrenamiento
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
               Biblioteca, rutinas y progreso fisico
             </h3>
           </div>
@@ -1171,7 +1171,7 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
         </div>
 
         {isLoading ? (
-          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/45 p-6 text-sm text-slate-300">
+          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/45 p-4 text-sm text-slate-300 sm:p-6">
             Cargando ejercicios, rutinas y objetivos...
           </div>
         ) : null}
@@ -1179,15 +1179,15 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
 
       {!isLoading && activeTab === 'biblioteca' ? (
         <section className="space-y-6">
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex items-center gap-3">
                 <Dumbbell className="h-5 w-5 text-emerald-200" />
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
                     Biblioteca de ejercicios
                   </p>
-                  <h3 className="mt-2 text-2xl font-semibold text-white">
+                  <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                     ABM con busqueda por nombre o grupo muscular
                   </h3>
                 </div>
@@ -1308,7 +1308,7 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
                 </article>
               ))
             ) : (
-              <div className="rounded-[1.75rem] border border-dashed border-white/15 bg-slate-900/35 p-6 text-sm text-slate-300 xl:col-span-3">
+              <div className="rounded-[1.75rem] border border-dashed border-white/15 bg-slate-900/35 p-4 text-sm text-slate-300 sm:p-6 xl:col-span-3">
                 No hay ejercicios para esa busqueda. Puedes crear uno nuevo o cargar
                 la biblioteca base.
               </div>
@@ -1319,13 +1319,13 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
 
       {!isLoading && activeTab === 'rutinas' ? (
         <section className="grid gap-6 xl:grid-cols-[minmax(300px,0.85fr)_minmax(0,1.35fr)]">
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
                   Rutinas guardadas
                 </p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
+                <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                   Reutiliza entrenamientos
                 </h3>
               </div>
@@ -1428,15 +1428,15 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+            <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
               {currentRoutine ? (
                 <>
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
                         Entrenamiento actual
                       </p>
-                      <h3 className="mt-2 text-2xl font-semibold text-white">
+                      <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                         {currentRoutine.nombre}
                       </h3>
                       <p className="mt-3 text-sm leading-6 text-slate-300">
@@ -1649,14 +1649,14 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
               )}
             </section>
 
-            <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+            <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
               <div className="flex items-center gap-3">
                 <CalendarPlus className="h-5 w-5 text-emerald-200" />
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
                     Agenda fisica
                   </p>
-                  <h3 className="mt-2 text-2xl font-semibold text-white">
+                  <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                     Proximos entrenamientos
                   </h3>
                 </div>
@@ -1700,14 +1700,14 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
       {!isLoading && activeTab === 'objetivos' ? (
         <section className="space-y-6">
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.85fr)]">
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
               <div className="flex items-center gap-3">
                 <Target className="h-5 w-5 text-emerald-200" />
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
                     Objetivo actual
                   </p>
-                  <h3 className="mt-2 text-2xl font-semibold text-white">
+                  <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                     {objective?.nombre ?? 'Define tu objetivo'}
                   </h3>
                 </div>
@@ -1734,13 +1734,13 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
             </div>
 
             <form
-              className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]"
+              className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6"
               onSubmit={handleSaveObjective}
             >
-              <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
                 Configuracion
               </p>
-              <h3 className="mt-2 text-2xl font-semibold text-white">
+              <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                 Horas o entrenamientos
               </h3>
 
@@ -1835,14 +1835,14 @@ function ModuloEntrenamiento({ onDataChanged, userId }: ModuloEntrenamientoProps
             </ChartPanel>
           </div>
 
-          <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+          <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
             <div className="flex items-center gap-3">
               <Timer className="h-5 w-5 text-emerald-200" />
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
                   Actividad Fisica
                 </p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
+                <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
                   Eventos que cuentan para el objetivo
                 </h3>
               </div>
@@ -2091,7 +2091,7 @@ function EntrenamientoTabButton({
 }: EntrenamientoTabButtonProps) {
   return (
     <button
-      className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+      className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition sm:w-auto ${
         active
           ? 'border-emerald-300/35 bg-emerald-300/12 text-emerald-100'
           : 'border-white/10 bg-white/6 text-slate-300'
@@ -2156,9 +2156,9 @@ type StatCardProps = {
 
 function StatCard({ label, value }: StatCardProps) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-slate-900/45 p-5">
+    <div className="rounded-3xl border border-white/10 bg-slate-900/45 p-4 sm:p-5">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{label}</p>
-      <p className="mt-3 break-words text-2xl font-semibold text-white">{value}</p>
+      <p className="mt-3 break-words text-xl font-semibold text-white sm:text-2xl">{value}</p>
     </div>
   )
 }
@@ -2182,14 +2182,14 @@ type ChartPanelProps = {
 
 function ChartPanel({ children, icon, title }: ChartPanelProps) {
   return (
-    <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-6 shadow-[0_16px_48px_rgba(15,23,42,0.25)]">
+    <section className="rounded-[1.75rem] border border-white/10 bg-white/8 p-4 shadow-[0_16px_48px_rgba(15,23,42,0.25)] sm:p-6">
       <div className="flex items-center gap-3">
         {icon}
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
             Grafico
           </p>
-          <h3 className="mt-2 text-2xl font-semibold text-white">{title}</h3>
+          <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">{title}</h3>
         </div>
       </div>
       <div className="mt-6">{children}</div>
@@ -2210,7 +2210,7 @@ function WeeklyBarChart({
   )
 
   return (
-    <div className="grid h-72 grid-cols-8 items-end gap-3">
+    <div className="grid h-56 grid-cols-8 items-end gap-2 sm:h-72 sm:gap-3">
       {data.map((point) => {
         const value = metric === 'horas' ? point.hours : point.count
         const height = Math.max(8, (value / maxValue) * 100)
@@ -2272,14 +2272,14 @@ type ModalFrameProps = {
 
 function ModalFrame({ children, onClose, subtitle, title }: ModalFrameProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-4 py-8 backdrop-blur-sm">
-      <div className="max-h-[calc(100vh-4rem)] w-full max-w-3xl overflow-y-auto rounded-[2rem] border border-white/10 bg-slate-950/95 p-6 shadow-[0_24px_100px_rgba(2,6,23,0.65)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-8">
+      <div className="max-h-[calc(100vh-2rem)] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/95 p-4 shadow-[0_24px_100px_rgba(2,6,23,0.65)] sm:max-h-[calc(100vh-4rem)] sm:rounded-[2rem] sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.26em] text-emerald-200/75">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/75 sm:text-sm sm:tracking-[0.26em]">
               {title}
             </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">{subtitle}</h3>
+            <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">{subtitle}</h3>
           </div>
 
           <button
