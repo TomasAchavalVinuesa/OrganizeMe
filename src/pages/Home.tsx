@@ -198,17 +198,17 @@ function Home() {
   const handleSelectView = (view: DashboardView) => {
     setActiveView(view)
 
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setIsSidebarOpen(false)
     }
   }
 
   const sidebarVisibilityClass =
-    'absolute inset-y-0 left-0 z-20 w-[min(320px,100vw)] max-w-[320px] transition-all duration-300 lg:relative lg:z-auto lg:max-w-none'
+    'fixed inset-y-0 left-0 z-30 h-dvh transition-all duration-300 md:sticky md:top-0 md:z-auto md:h-dvh'
 
   const sidebarStateClass = isSidebarOpen
-    ? 'translate-x-0 border-r border-white/10 opacity-100'
-    : 'pointer-events-none -translate-x-full opacity-0 lg:w-0 lg:translate-x-0 lg:border-r-0'
+    ? 'w-screen max-w-none shrink-0 translate-x-0 border-r border-white/10 opacity-100 md:w-[320px] md:max-w-[320px]'
+    : 'pointer-events-none w-screen max-w-none -translate-x-full opacity-0 md:w-0 md:max-w-0 md:translate-x-0 md:border-r-0'
 
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),_transparent_25%),linear-gradient(160deg,_#07111f_0%,_#0f172a_42%,_#111827_100%)]">
@@ -216,7 +216,7 @@ function Home() {
         {isSidebarOpen ? (
           <button
             aria-label="Ocultar sidebar"
-            className="absolute inset-0 z-10 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"
+            className="absolute inset-0 z-20 bg-slate-950/45 backdrop-blur-[2px] md:hidden"
             onClick={() => {
               setIsSidebarOpen(false)
             }}
@@ -225,14 +225,14 @@ function Home() {
         ) : null}
 
         <aside
-          className={`${sidebarVisibilityClass} ${sidebarStateClass} overflow-hidden bg-[linear-gradient(180deg,rgba(8,47,73,0.55),rgba(15,23,42,0.92))] p-4 sm:p-6`}
+          className={`${sidebarVisibilityClass} ${sidebarStateClass} overflow-hidden bg-[linear-gradient(180deg,#082f49_0%,#0f172a_62%,#020617_100%)] ${isSidebarOpen ? 'p-[clamp(0.75rem,2dvh,1.5rem)]' : 'p-0'}`}
         >
           <div className="flex h-full min-h-0 flex-col">
-            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-              <div className="flex items-start justify-between gap-3 rounded-3xl border border-white/10 bg-white/8 p-5">
+            <div className="min-h-0 flex-1">
+              <div className="flex items-start justify-between gap-3 rounded-3xl border border-white/10 bg-white/8 p-[clamp(0.75rem,1.9dvh,1.25rem)]">
                 <div className="flex flex-col min-w-0 items-start gap-2">
                   <button
-                    className={`flex h-12 w-40 shrink-0 items-center justify-center rounded-2xl border text-lg font-black text-sky-100 shadow-[0_16px_34px_rgba(56,189,248,0.12)] transition hover:bg-sky-300/18 ${
+                    className={`flex h-[clamp(2.5rem,5.7dvh,3rem)] w-[clamp(9rem,20dvh,10rem)] shrink-0 items-center justify-center rounded-2xl border text-[clamp(1rem,2.2dvh,1.125rem)] font-black text-sky-100 shadow-[0_16px_34px_rgba(56,189,248,0.12)] transition hover:bg-sky-300/18 ${
                       activeView === 'dashboard'
                         ? 'border-sky-300/40 bg-sky-300/18'
                         : 'border-sky-300/25 bg-sky-300/12'
@@ -248,7 +248,7 @@ function Home() {
 
                 <button
                   aria-label="Cerrar sidebar"
-                  className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/45 text-slate-200 transition hover:bg-white/10"
+                  className="inline-flex h-[clamp(2.5rem,5.7dvh,3rem)] w-[clamp(2.5rem,5.7dvh,3rem)] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950 text-slate-200 transition hover:bg-white/10"
                   onClick={() => {
                     setIsSidebarOpen(false)
                   }}
@@ -258,7 +258,7 @@ function Home() {
                 </button>
               </div>
 
-              <nav className="mt-8 space-y-3">
+              <nav className="mt-[clamp(0.85rem,3dvh,2rem)] space-y-[clamp(0.45rem,1.4dvh,0.75rem)]">
                 {navigationItems.map((item) => (
                   <SidebarNavButton
                     key={item.id}
@@ -274,7 +274,7 @@ function Home() {
               </nav>
             </div>
 
-            <nav className="mt-6 border-t border-white/10 pt-4">
+            <nav className="mt-[clamp(0.65rem,2dvh,1.5rem)] border-t border-white/10 pt-[clamp(0.55rem,1.6dvh,1rem)]">
               <SidebarNavButton
                 active={activeView === accountNavigationItem.id}
                 icon={<accountNavigationItem.icon className="h-5 w-5" />}
@@ -503,7 +503,7 @@ function SidebarNavButton({
 }: SidebarNavButtonProps) {
   return (
     <button
-      className={`w-full rounded-3xl border p-4 text-left transition sm:p-5 ${
+      className={`w-full rounded-3xl border p-[clamp(0.7rem,1.65dvh,1.25rem)] text-left transition ${
         active
           ? 'border-sky-300/35 bg-sky-300/12 shadow-[0_16px_40px_rgba(56,189,248,0.08)]'
           : 'border-white/10 bg-white/6 hover:bg-white/10'
@@ -513,7 +513,7 @@ function SidebarNavButton({
     >
       <div className="flex items-center gap-3">
         <span
-          className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+          className={`flex h-[clamp(2.15rem,5dvh,2.75rem)] w-[clamp(2.15rem,5dvh,2.75rem)] shrink-0 items-center justify-center rounded-2xl ${
             active
               ? 'bg-sky-300/20 text-sky-100'
               : 'bg-slate-900/60 text-slate-300'
@@ -522,11 +522,15 @@ function SidebarNavButton({
           {icon}
         </span>
         <div>
-          <p className="text-base font-semibold text-white">{title}</p>
+          <p className="text-[clamp(0.88rem,1.75dvh,1rem)] font-semibold text-white">
+            {title}
+          </p>
         </div>
       </div>
       {description ? (
-        <p className="mt-4 text-sm leading-6 text-slate-300">{description}</p>
+        <p className="mt-[clamp(0.4rem,1.25dvh,1rem)] text-[clamp(0.72rem,1.45dvh,0.875rem)] leading-[1.45] text-slate-300">
+          {description}
+        </p>
       ) : null}
     </button>
   )
