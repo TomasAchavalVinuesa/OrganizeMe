@@ -310,7 +310,7 @@ function ModuloAjustesCuenta({
           </div>
 
           <button
-            className="inline-flex items-center justify-center gap-2 self-start rounded-2xl border border-rose-300/25 bg-rose-300/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/18 disabled:cursor-not-allowed disabled:opacity-70"
+            className="hidden items-center justify-center gap-2 self-start rounded-2xl border border-rose-300/25 bg-rose-300/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/18 disabled:cursor-not-allowed disabled:opacity-70 md:inline-flex"
             disabled={isLoggingOut}
             onClick={onLogout}
             type="button"
@@ -477,6 +477,16 @@ function ModuloAjustesCuenta({
           )}
         </section>
       </form>
+
+      <button
+        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/18 disabled:cursor-not-allowed disabled:opacity-70 md:hidden"
+        disabled={isLoggingOut}
+        onClick={onLogout}
+        type="button"
+      >
+        <LogOut className="h-4 w-4" />
+        {isLoggingOut ? 'Cerrando...' : 'Cerrar sesion'}
+      </button>
     </div>
   )
 }
