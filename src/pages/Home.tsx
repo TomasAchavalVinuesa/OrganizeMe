@@ -52,7 +52,7 @@ const navigationItems: Array<{
 }> = [
   {
     id: 'tiempo',
-    title: 'Gestion de Tiempo',
+    title: 'Actividades',
     description: 'Calendario mensual, agenda semanal y organizador de tareas.',
     icon: CalendarRange,
   },
@@ -306,9 +306,6 @@ function Home() {
                   ) : null}
 
                   <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.28em] text-sky-200/70">
-                      Bienvenido 
-                    </p>
                     <h2 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
                       {getActiveViewTitle(activeView)}
                     </h2>
@@ -576,7 +573,7 @@ function getActiveViewTitle(activeView: DashboardView) {
   }
 
   if (activeView === 'tiempo') {
-    return 'Gestion de Tiempo'
+    return 'Actividades'
   }
 
   if (activeView === 'finanzas') {
